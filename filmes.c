@@ -40,6 +40,8 @@
 #include "st.h"      /* freeST(), initST(), putFilmeST(), getFilmeST(),
                         showST(), freeST() */
 #define eps 0.0001
+#define LINHA  printf("------------------------------------------"      \
+                      "--------------------------------------\n")
 
 /*----------------------------------------------------------------------
  *  crieFilme
@@ -120,7 +122,8 @@ libereListaFilmes(ListaFilmes *lst)
         proximo = aux->prox;
         libereFilme(aux);
     }
-    libereFilme(cabeca);
+    lst->cab->prox = cabeca;
+    lst->cab->ant = cabeca;
 }
 
 /*----------------------------------------------------------------------
@@ -133,8 +136,8 @@ libereListaFilmes(ListaFilmes *lst)
 void 
 libereFilme(Filme *flm)
 {
-    free(flm->nome);
-    free(flm);
+    if(flm->nome != NULL) free(flm->nome);
+    if (flm != NULL) free(flm);
 }
 
 /*----------------------------------------------------------------------
@@ -154,6 +157,7 @@ insiraFilme(ListaFilmes *lst, Filme *flm)
     lst->cab->prox->ant = flm;
     flm->ant = lst->cab;
     lst->cab->prox = flm;
+    lst->nFilmes++;
 }
 
 
@@ -201,23 +205,51 @@ contemFilme(ListaFilmes *lst, Filme *flm)
 void 
 removaFilme(ListaFilmes *lst, Filme *flm)
 {
-    flm->ant = flm->prox;
+    flm->ant->prox = flm->prox;
+    flm->prox->ant = flm->ant;
     free(flm);
+    lst->nFilmes--;
 }
 
-void 
+Filme* 
 procuraFilme(ListaFilmes *lst, char* trechoNome){
-    Filme *cabeca, *aux, *proximo;
-    char *res;
+    Filme *cabeca, *aux;
+    char res = 'n';
 
-    for(cabeca = lst->cab, aux = lst->cab->prox; aux != cabeca; aux = proximo){
-        proximo = aux->prox;
-        if(achePalavra(trechoNome, strlen(trechoNome), aux->nome, strlen(aux->nome)) == TRUE ){
+    for(cabeca = lst->cab, aux = lst->cab->prox; aux != cabeca && res == 'n'; aux = aux->prox){
+        if(achePalavra((uchar *)trechoNome, strlen(trechoNome), (uchar *) aux->nome, strlen(aux->nome)) == TRUE ){
             mostreFilme(aux);
             printf("Esse e' o filme procurado? [s/n/x] (x para sair): ");
-            leiaString(res, 1);
+            scanf(" %c", &res);
+            if(res == 's') return aux;
         }
     }
+    
+    return NULL;
+}
+
+void
+mostreFilmesNota(int numFilmes, float nota, int minVotos, ListaFilmes* lst, int opcao){
+    Filme *cabeca, *aux;
+    int contFilmes = 0;
+
+    cabeca = lst->cab;
+    if(opcao == MOSTRAR_MAIOR) aux = lst->cab->ant;
+    else if (opcao == MOSTRAR_MENOR) aux = lst->cab->prox;
+
+    while( aux != cabeca && contFilmes < numFilmes){
+        if( (opcao == MOSTRAR_MENOR && aux->nota < nota && aux->votos >= minVotos ) || 
+            (opcao == MOSTRAR_MAIOR && aux->nota > nota && aux->votos >= minVotos) ){
+            mostreFilme(aux);
+            contFilmes++;
+        }
+        if(opcao == MOSTRAR_MAIOR) aux = aux->ant;
+        else if (opcao == MOSTRAR_MENOR) aux = aux->prox;
+    }
+
+    LINHA;
+    if(opcao == MOSTRAR_MENOR) printf("Esses sao os %d melhores filmes com nota menor que %.2f e pelo menos %d votos.\n", contFilmes, nota, minVotos);
+    else if(opcao == MOSTRAR_MAIOR) printf("Esses sao os %d piores filmes com nota maior que %.2f e pelo menos %d votos.\n", contFilmes, nota, minVotos);
 }
 
 /*----------------------------------------------------------------------
@@ -255,8 +287,87 @@ procuraFilme(ListaFilmes *lst, char* trechoNome){
 void 
 mergeSortFilmes(ListaFilmes *lst, Criterio criterio)
 {
-    AVISO(mergeSortFilmes em filmes.c:  Vixe ainda nao fiz essa funcao...);
+    ListaFilmes l1, l2;
+    Filme *fimL1, *fimL2;
+    Filme cab1, cab2;
+    int q;
+
+    if(lst->nFilmes >= 2){
+        q = (lst->nFilmes)/2;
+        l1.nFilmes = q;
+        l2.nFilmes = lst->nFilmes - q;
+        l1.cab = &cab1;
+        l2.cab = &cab2;
+        for(fimL1 = lst->cab->prox; q > 1; q--, fimL1 = fimL1->prox);
+        for(fimL2 = fimL1->prox; fimL2->prox != lst->cab; fimL2 = fimL2->prox);
+
+        l2.cab->prox = fimL1->prox;
+        fimL2->prox = l2.cab;
+        l2.cab->ant = fimL2;
+
+        l1.cab->prox = lst->cab->prox;
+        fimL1->prox = l1.cab;
+        l1.cab->ant = fimL1;
+
+        mergeSortFilmes(&l1, criterio);
+        mergeSortFilmes(&l2, criterio);
+        intercale(l1, l2, lst, criterio);
+    }
 }
+
+void
+intercale(ListaFilmes listParc1, ListaFilmes listParc2, ListaFilmes* lst, Criterio criterio){
+    Filme *proxIns = lst->cab, *proxL1 = listParc1.cab->prox, *proxL2 = listParc2.cab->prox;
+    Filme *tmpPrL1, *tmpPrL2;
+    
+    lst->cab->prox = lst->cab->ant = lst->cab;
+
+    while(listParc1.nFilmes > 0 && listParc2.nFilmes > 0){
+        if( ( criterio == NOTA && proxL1->nota > proxL2->nota ) || 
+              (criterio == NOME && strCmp(proxL1->nome, proxL2->nome) <= 0 ) ){
+            tmpPrL1 = proxL1->prox;
+            proxL1->ant = proxIns;
+            proxL1->prox = proxIns->prox;
+            proxIns->prox = proxL1;
+            proxIns = proxL1;
+            proxL1 = tmpPrL1;
+            listParc1.nFilmes--;
+        }else{
+            tmpPrL2 = proxL2->prox;
+            proxL2->ant = proxIns;
+            proxL2->prox = proxIns->prox;
+            proxIns->prox = proxL2;
+            proxIns = proxL2;
+            proxL2 = tmpPrL2;
+            listParc2.nFilmes--;
+        }
+
+    }
+
+    while(listParc1.nFilmes > 0){
+        tmpPrL1 = proxL1->prox;
+        proxL1->ant = proxIns;
+        proxL1->prox = proxIns->prox;
+        proxIns->prox = proxL1;
+        proxIns = proxL1;
+        proxL1 = tmpPrL1;
+        listParc1.nFilmes--;
+    }
+
+    while(listParc2.nFilmes > 0){
+        tmpPrL2 = proxL2->prox;
+        proxL2->ant = proxIns;
+        proxL2->prox = proxIns->prox;
+        proxIns->prox = proxL2;
+        proxIns = proxL2;
+        proxL2 = tmpPrL2;
+        listParc2.nFilmes--;
+    }
+
+    proxIns->prox = lst->cab;
+    lst->cab->ant = proxIns;
+}
+
 
 /*----------------------------------------------------------------------
  *  quickSortFilmes [opcional]
@@ -293,9 +404,91 @@ mergeSortFilmes(ListaFilmes *lst, Criterio criterio)
 void 
 quickSortFilmes(ListaFilmes *lst, Criterio criterio)
 {
-    AVISO(quickSortFilmes em filmes.c: Vixe ainda nao fiz essa funcao...);
+    Filme *separadorListas, *fimL1, *fimL2;
+    ListaFilmes l1, l2;
+    Filme cab1, cab2;
+    int q;
+
+    if(lst->nFilmes > 1){
+        separadorListas = separa(lst, criterio);
+
+        for(fimL1 = lst->cab, q = 0; fimL1->prox != separadorListas; q++, fimL1 = fimL1->prox);
+        fimL2 = lst->cab->ant;
+
+        l1.nFilmes = q;
+        l2.nFilmes = lst->nFilmes - q - 1;
+        l1.cab = &cab1;
+        l2.cab = &cab2;
+
+        fimL1->prox = l1.cab;
+        l1.cab->ant = fimL1;
+
+        l1.cab->prox = lst->cab->prox;
+        lst->cab->prox->ant = l1.cab;
+
+        l2.cab->prox = separadorListas->prox;
+        separadorListas->prox->ant = l2.cab;
+
+        fimL2->prox = l2.cab;
+        l2.cab->ant = fimL2;
+
+        quickSortFilmes(&l1, criterio);
+        quickSortFilmes(&l2, criterio);
+
+        if(l1.nFilmes > 0 && l2.nFilmes > 0){
+            l1.cab->ant->prox = separadorListas;
+            separadorListas->ant = l1.cab->ant;
+
+            separadorListas->prox = l2.cab->prox;
+            l2.cab->prox->ant = separadorListas;
+
+            l2.cab->ant->prox = lst->cab;
+            lst->cab->ant = l2.cab->ant;
+
+            lst->cab->prox = l1.cab->prox;
+            l1.cab->prox->ant = lst->cab;
+        }else if(l1.nFilmes <= 0 && l2.nFilmes > 0){
+            separadorListas->prox = l2.cab->prox;
+            l2.cab->prox->ant = separadorListas;
+
+            lst->cab->prox = separadorListas;
+
+            l2.cab->ant->prox = lst->cab;
+            lst->cab->ant = l2.cab->ant;
+        }else if(l1.nFilmes > 0 && l2.nFilmes <= 0){
+            lst->cab->prox = l1.cab->prox;
+            l1.cab->prox->ant = lst->cab;
+            
+            l1.cab->ant->prox = separadorListas;
+            separadorListas->ant = l1.cab->ant;
+            separadorListas->prox = lst->cab;
+
+            lst->cab->ant = separadorListas;
+        }
+    }
 }
 
+Filme*
+separa(ListaFilmes* lst, Criterio criterio){
+    Filme *x = lst->cab->ant, *proxMaiIg = lst->cab, *aux = lst->cab->prox, *tmp;
+    while(aux != lst->cab){
+        if(( criterio == NOTA && aux->nota >= x->nota ) || 
+           ( criterio == NOME && strCmp(aux->nome, x->nome) <= 0 ) ) {
+                aux->ant->prox = aux->prox;
+                aux->prox->ant = aux->ant;
+                tmp = aux->prox;
+                aux->prox = proxMaiIg->prox;
+                aux->ant = proxMaiIg;
+                proxMaiIg->prox->ant = aux;
+                proxMaiIg->prox = aux;
+                proxMaiIg = aux;
+                aux = tmp;
+        }else{
+            aux = aux->prox;
+        }
+    }
+    return proxMaiIg;
+}
 /*----------------------------------------------------------------------
  *  hashFilmes [opcional]
  *

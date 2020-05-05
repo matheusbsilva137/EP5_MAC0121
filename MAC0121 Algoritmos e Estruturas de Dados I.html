@@ -1,0 +1,1937 @@
+
+<!-- saved from url=(0064)https://www.ime.usp.br/~cris/mac121/eps/ep5/enunciado/index.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+
+  <title>MAC0121 Algoritmos e Estruturas de Dados I</title>
+  <link rel="stylesheet" href="./MAC0121 Algoritmos e Estruturas de Dados I_files/eps.css" type="text/css">
+</head>
+<body cz-shortcut-listen="true">
+
+
+<p align="right">
+<small><b><a href="http://www.ime.usp.br/mac/">Departamento de Ciência da
+Computação</a> - <a href="http://www.ime.usp.br/">IME</a> - <a href="http://www.usp.br/">USP</a></b></small><br>
+
+
+
+</p>
+<h1>MAC0121 Algoritmos e Estruturas de Dados I</h1>
+
+<h2>Segundo Semestre de 2019</h2>
+
+<h3 class="center">Quinto Exercício Programa&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</h3>
+
+<h2 class="titulo"><center>The Internet Movie Database</center></h2>
+
+<font color="#000000">
+<p align="right">
+<small>
+&nbsp;&nbsp;
+<i>Listas encadeadas são as estruturas de dados mais importantes do universo</i><br>
+[nada como exagerar um pouco para chamar atenção]. <br>
+<br>
+Paulo Feofiloff
+</small>
+</p>
+</font>
+
+<p>&nbsp;</p>
+<hr>
+
+<h2>
+Objetivos
+</h2>
+
+<p>&nbsp;&nbsp;&nbsp;
+O objetivo desse quinto exercício-programa (EP) é treinar 
+(mais) <a href="http://www.ime.usp.br/~pf/algoritmos/aulas/recu.html">Recursão</a>, 
+(mais) <a href="http://www.ime.usp.br/~pf/algoritmos/aulas/stru.html">Registros e structs</a>,
+(mais) <a href="http://www.ime.usp.br/~pf/algoritmos/aulas/aloca.html">Alocação dinâmica de memória</a>,
+(mais) <a href="http://www.ime.usp.br/~pf/algoritmos/aulas/lista.html">Listas encadeadas</a> (listas circulares duplamente encadeadas com cabeça),
+Ordenação (<a href="http://www.ime.usp.br/~pf/algoritmos/aulas/mrgsrt.html">Mergesort</a> (<a href="http://www.ime.usp.br/~pf/algoritmos/aulas/quick.html">Quicksort</a> opcional)),
+um pouco de <a href="http://www.ime.usp.br/~pf/algoritmos/aulas/strma.html">Busca de palavras em um texto</a>, mais um pouco de <a href="http://www.ime.usp.br/~pf/mac0122-2002/aulas/symbol-table.html">Tabelas de símbolos</a> implementadas através de uma <a href="http://www.ime.usp.br/~pf/mac0122-2002/aulas/hashing.html">Tabela de dispersão</a> (= <i>hash table</i>, opcional).
+
+</p><p>
+Este EP é uma adaptação, feita pelo professor José Coelho de Pina, do <a href="http://www.ime.usp.br/~jose/mac0122-2005/ep5/">EP5 de MAC0122 em 2005</a> de autoria do professor José Augusto Ramos Soares e do <a href="http://www.ime.usp.br/~hitoshi/mac0122-2012/ep5/">EP5 de MAC0122 em 2012</a> de autoria do professor Carlos Hitoshi Morimoto.
+</p> 
+
+<p>&nbsp;</p>
+<hr>
+
+<h2>
+Introdução
+</h2>
+
+<p>&nbsp;&nbsp;&nbsp;
+Quem assina TV a cabo tem várias opções para assistir filmes.
+Porém poucos são os filmes que realmente valem a pena serem vistos.
+As sinopses oferecidos pelas empresas pouco ajudam.
+
+</p><p>&nbsp;&nbsp;&nbsp;
+Pois bem, <b><font color="red">seus problemas acabaram</font></b>. 
+Neste EP vamos fazer um programa
+que imprime notas para filmes usando informações disponíveis na Internet!
+
+</p><p>&nbsp;&nbsp;&nbsp;
+Para isso vamos implementar um programa que lê de um (ou mais) arquivo(s)
+informações sobre filmes e permite fazer operações como consulta,
+ordenação, inserção e remoção de filmes, etc.
+
+
+</p><p>&nbsp;&nbsp;&nbsp;
+Um esqueleto para você utilizar como ponto de partida para o EP5 está disponível <a href="https://www.ime.usp.br/~cris/mac121/eps/ep5/esqueleto/">aqui</a>.
+Essencialmente, o esqueleto é formado por:
+</p><ul>
+  <li> um programa principal parcialmente feito (<tt>main.c, main.h</tt>);
+  </li><li> funções de entrada e saída do EP5 (<tt>iofilmes.c, iofilmes.h</tt>);
+  </li><li> funções que manipulam listas de filmes (<tt>filmes.c, filmes.h</tt>);
+  </li><li> funções que manipulam uma tabela de símbolos (<tt>st.c, st.h</tt>; opcional); 
+  </li><li> funções de uso geral (<tt>util.c, util.h</tt>):
+   uma função de nome
+<font color="red"><tt>leiaString</tt></font> que pode ser usada para ler cadeias de caracteres como, por exemplo, nomes de filmes;
+   uma função de nome <font color="red"><tt>strCmp</tt></font> que
+  pode ser utilizada na ordenação dos filmes por nome; etc.
+</li></ul>  
+
+<!---------------------------------------------------------------------->
+<p>&nbsp;</p>
+
+<hr>
+
+<h2>
+Arquivo do IMDB com avaliações
+</h2>
+
+<p>&nbsp;&nbsp;&nbsp;
+Seu programa irá ler as notas dos filmes de arquivos.
+Esses arquivos são disponibilizados e estão no formato utilizado pela <a href="http://www.imdb.com/">The Internet Movie Database</a> (IMDB).
+O IMDB coleta essas informações a partir da participação de
+vários espectadores que se dispuseram a dar notas aos filmes.
+
+</p><p>&nbsp;&nbsp;&nbsp;
+Como exemplo, mostramos duas linhas do arquivo:
+</p><pre class="code">      <font color="red">0000000233</font>  <font color="blue">419191</font>  <font color="green">8.7</font>  <font color="magenta">Cidade de Deus</font> (<font color="#ffaa00">2002</font>)
+      7000000.00     231  1.5  Xuxa Abracadabra (2003)
+</pre>
+
+<p>&nbsp;&nbsp;&nbsp;
+A primeira linha indica que <font color="blue"><code>419191</code></font> pessoas votaram no
+filme, a média das notas foi  <font color="green"><code>8,7</code></font>, 
+o nome do filme é
+<font color="magenta"><code>Cidade de Deus</code></font> e o ano do filme é <font color="#ffaa00"><code>2002</code></font>.
+Cada nota de um votante é um inteiro de <code>1</code> até
+<code>10</code>.
+O string <font color="red"><code>0000000233</code></font>
+indica a distribuição de votos.
+Cada caractere representa a porcentagem de votos para cada possível
+nota, de acordo com a seguinte descrição.
+</p><pre class="code">     "." nenhum voto        "3" 30-39% dos votos   "7" 70-79% dos votos
+     "0"  1-9%  dos votos   "4" 40-49% dos votos   "8" 80-89% dos votos
+     "1" 10-19% dos votos   "5" 50-59% dos votos   "9" 90-99% dos votos
+     "2" 20-29% dos votos   "6" 60-69% dos votos   "*" 100%   dos votos
+</pre>
+Portanto, no caso de <font color="magenta"><code>Cidade de Deus</code></font>, entre <code>30</code> a
+<code>39%</code> dos votos foram <code>10</code>, enquanto que entre
+<code>70</code> a <code>79%</code> dos votos da Xuxa foram
+<code>1</code>. Mas como o filme da Xuxa recebeu apenas 231 votos,
+fica a seu critério confiar ou não nessa nota.
+
+
+
+<p>&nbsp;</p>
+<hr>
+<h2><center><font color="red">
+Comportamento do programa
+</font></center></h2>
+
+<p>&nbsp;&nbsp;&nbsp;
+Nos exemplos, tudo que aparece em <font color="red"><b>vermelho</b></font>
+foi digitado pelo usuário. 
+A descrição abaixo serve apenas para você formar uma ideia do
+comportamento do programa. Rodar o <a href="https://www.ime.usp.br/~cris/mac121/eps/ep5/executaveis/">programa executável</a> fornecido pode ajudar a entender o EP5.
+
+</p><h3>Opções iniciais</h3>
+<p>&nbsp;&nbsp;&nbsp;
+Inicialmente o programa apresenta a seguinte lista de opções ao usuário
+e pede que digite uma das opções:
+</p><pre class="code">prompt&gt; <font color="red">./imdb</font>
+MAC0121 2019 - EP5
+The Internet Movie Database (Nov 16 2019, 16:35:45)
+[GCC 4.2.1 Compatible Apple LLVM 9.1.0 (clang-902.0.39.1)] on Mac OS X
+
+======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: 
+</pre>
+
+<p>
+A leitura de dados pode ser feita várias vezes. 
+A <font color="red"><b>lista atual de filmes</b></font> mantida pelo programa
+contém a união de todos os filmes nos arquivos lidos. 
+Se utilizarmos a opção '<font color="red"><b>C</b></font>' para carregar um arquivo de dados os eventuais <font color="red"><b>filmes duplicados</b></font> não serão inseridos na lista atual de filmes.
+Já, se utilizarmos a opção '<font color="red"><b>c</b></font>', os eventuais <font color="red"><b>filmes duplicados</b></font>
+serão inseridos na lista de filmes. 
+
+</p><h3>Carregar um arquivo de dados</h3>
+<p>&nbsp;&nbsp;&nbsp;
+Pergunta ao usuário o nome de um arquivo de filmes no 
+formato do IMDB descrito anteriormente e carrega
+esse arquivo e armazena os dados dos filmes em uma lista.
+</p><pre class="code">======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>C</b></font>
+carregueLista: Digite o nome do arquivo: <font color="red"><b>03-filmes.list</b></font>
+carregueLista: Nome do arquivo de entrada: '03-filmes.list'
+--------------------------------------------------------------------------------
+carregueFilme: relatorio da leitura do arquivo '03-filmes.list'
+   no. linhas = 3
+   no. linhas ignoradas = 0
+   no. erros em votos ou nota = 0
+   no. erros no ano = 0
+   no. anos ignorados = 0
+   no. filmes repetidos = 0
+   no. filmes inseridos na lista = 3
+   no. filmes na lista = 3
+carregueFilmes: leitura concluida
+--------------------------------------------------------------------------------
+
+(0.000375 segundos)
+
+======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>m</b></font>
+--------------------------------------------------------------------------------
+"Alsaciens - ou les deux Mathilde, Les" (ano 1996):
+	 nota  4.7 	     19 votos 	 distribuicao [1..0..2103] 
+--------------------------------------------------------------------------------
+Night of the Day of the Dawn of the Son of the Bride of the Return of the Revenge of the Terror of the Attack of the Evil, Mutant, Hellbound, Flesh-Eating Subhumanoid Zombified Living Dead, Part 3 (ano 2005):
+	 nota  2.8 	      5 votos 	 distribuicao [8........2] 
+--------------------------------------------------------------------------------
+Adrienne Clarkson Presents: A Tribute to Peppiatt &amp; Aylesworth: Canada's First Television Comedy Team (ano 1996):
+	 nota  8.7 	      6 votos 	 distribuicao [.....3...6] 
+--------------------------------------------------------------------------------
+mostreListaFilmes: 3 (de 3) filme(s) exibido(s)
+
+(0.0001 segundos)
+</pre>
+
+
+<h3>Gravar a lista atual em um arquivo</h3>
+
+<p>&nbsp;&nbsp;&nbsp;
+Neste caso é pedido o nome do arquivo em que a lista atual de filmes deve 
+ser gravada.
+
+
+</p><pre class="code">======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>g</b></font>
+graveLista: digite o nome do arquivo: <font color="red"><b>meus-3-filmes-preferidos.list</b></font>
+AVISO: leiaString: string lido 'meus-3-filmes-preferidos.list' tem 29 caracteres
+AVISO: graveLista: nome do arquivo de saida: 'meus-3-filmes-preferidos.list'
+AVISO: graveLista: lista gravada no arquivo
+
+(0.000337 segundos)
+</pre>
+
+
+
+
+<h3>Inserir um filme</h3>
+<p>&nbsp;&nbsp;&nbsp;
+Pergunta ao usuário informações sobre o novo filme, e o insere na lista.
+</p><pre class="code">======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>i</b></font>
+Digite o nome do filme: <font color="red"><b>Thor: The Dark World</b></font>
+AVISO: leiaString: string lido 'Thor: The Dark World' tem 20 caracteres
+Digite o ano: <font color="red"><b>2013</b></font>
+Digite a nota: <font color="red"><b>7.2</b></font>
+Digite o numero de votos: <font color="red"><b>271146</b></font>
+Digite a distribuicao: <font color="red"><b>0..0004211</b></font>
+AVISO: leiaString: string lido '0..0004211' tem 10 caracteres
+--------------------------------------------------------------------------------
+Thor: The Dark World (ano 2013):
+	 nota  7.2 	 271146 votos 	 distribuicao [0..0004211] 
+Filme inserido na lista de filmes
+
+(0.000491 segundos)
+</pre>
+
+
+<h3>Mostrar todos os filmes</h3>
+  
+<p>&nbsp;&nbsp;&nbsp;
+Imprime na tela do computador a lista corrente de
+filmes. <font color="red">Atenção</font>, essa opção será
+muuiiittooo útil durante o desenvolvimento do seu programa.
+</p><pre class="code">======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>m</b></font>
+--------------------------------------------------------------------------------
+Thor: The Dark World (ano 2013):
+	 nota  7.2 	 271146 votos 	 distribuicao [0..0004211] 
+--------------------------------------------------------------------------------
+"Alsaciens - ou les deux Mathilde, Les" (ano 1996):
+	 nota  4.7 	     19 votos 	 distribuicao [1..0..2103] 
+--------------------------------------------------------------------------------
+Night of the Day of the Dawn of the Son of the Bride of the Return of the Revenge of the Terror of the Attack of the Evil, Mutant, Hellbound, Flesh-Eating Subhumanoid Zombified Living Dead, Part 3 (ano 2005):
+	 nota  2.8 	      5 votos 	 distribuicao [8........2] 
+--------------------------------------------------------------------------------
+Adrienne Clarkson Presents: A Tribute to Peppiatt &amp; Aylesworth: Canada's First Television Comedy Team (ano 1996):
+	 nota  8.7 	      6 votos 	 distribuicao [.....3...6] 
+--------------------------------------------------------------------------------
+mostreListaFilmes: 4 (de 4) filme(s) exibido(s)
+
+(0.000214 segundos)
+</pre>
+
+
+<h3>Procurar a nota de um filme</h3>
+  
+<p>&nbsp;&nbsp;&nbsp;
+Pergunta ao usuário uma parte ("string") que supostamente 
+faz parte do nome do filme que está sendo procurado.
+Em seguida, o programa exibe filmes que contém a "string" como parte do seu nome, 
+um filme de cada vez, até que o usuário confirme que encontrou o filme, ou que
+não haja mais filmes contendo aquela "string".
+<!--
+Pergunta ao usuário uma parte do nome ("string"), e exibe um filme de cada
+vez at&eacute; que o usuário confirme que encontrou o filme, ou que
+não haja mais filmes contendo aquela "string".
+-->
+</p>
+<pre class="code">======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>p</b></font>
+Digite parte do nome do filme a ser procurado: <font color="red"><b>thor</b></font>
+AVISO: leiaString: string lido 'thor' tem 4 caracteres
+--------------------------------------------------------------------------------
+Thor: The Dark World (ano 2013):
+	 nota  7.2 	 271146 votos 	 distribuicao [0..0004211] 
+Esse e' o filme procurado? [s/n/x] (x para sair): <font color="red"><b>s</b></font>
+
+(0.000234 segundos)
+</pre>  
+
+<h3>Criar uma tabela de símbolos (opcional)</h3>
+  
+<p>&nbsp;&nbsp;&nbsp;
+<font color="red"><b>A implementação desta opção é facultativa</b></font>.
+</p>
+
+<p>
+Cria
+uma <a href="http://www.ime.usp.br/~pf/mac0122-2002/aulas/symbol-table.html"><font color="red">tabela
+de símbolos</font></a>
+(= <a href="http://en.wikipedia.org/wiki/Symbol_table"><font color="red"><i>symbol
+table</i></font></a>) das palavras que aparecem no nomes do filmes.
+Na tabela de símbolos, cada palavra que aparece no nome de algum filme faz
+o papel das <font color="red"><b>chave</b></font> enquanto que a lista dos
+filmes que contém a palavra fará o papel do <font color="red"><b>valor</b></font>.
+A tabela de símbolos deverá ser implementada através de uma <a href="http://www.ime.usp.br/~pf/mac0122-2002/aulas/hashing.html"><font color="red">tabela de dispersão</font></a> (= <a href="http://en.wikipedia.org/wiki/Hash_table"><font color="red"><i>hash table</i></font></a>) 
+em que as colisões são <a href="http://www.ime.usp.br/~pf/mac0122-2002/aulas/hashing.html">resolvidas por meio de listas encadeadas</a> (= <a href="http://en.wikipedia.org/wiki/Hash_table#Separate_chaining"><font color="red" <i="">separate chaining</font></a>).
+</p>
+<pre class="code">======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>h</b></font>
+AVISO: hashFilmes: tabela de dispersao (hash) criada
+
+(0.000894 segundos)
+</pre>
+
+<h3>Procurar a nota de um filme através da tabela de símbolos (opcional)</h3>
+  
+<p>&nbsp;&nbsp;&nbsp;
+<font color="red"><b>A implementação desta opção é facultativa</b></font>.
+</p>
+<p>&nbsp;&nbsp;&nbsp;
+Pergunta ao usuário uma parte ou palavras ("string") que supostamente 
+fazem parte do nome do filme que está sendo procurado.
+Em seguida, o programa exibe filmes que contém as palavras em seu nome, um filme de cada
+vez, até que o usuário confirme que encontrou o filme, ou que
+não haja mais filmes contendo aquelas palavras ou "string".
+</p>
+<pre class="code">======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>P</b></font>   
+Digite um parte do nome do filme a ser procurado: <font color="red"><b>thor</b></font> 
+AVISO: leiaString: string lido 'thor' tem 4 caracteres
+--------------------------------------------------------------------------------
+Thor: The Dark World (ano 2013):
+	 nota  7.2 	 271146 votos 	 distribuicao [0..0004211] 
+Esse eh o filme procurado? [s/n/x] (x para sair): <font color="red"><b>s</b></font> 
+
+(0.000206 segundos)
+</pre>
+
+<h3>Mostra a tabela de símbolos (opcional)</h3>
+  
+<p>&nbsp;&nbsp;&nbsp;
+<font color="red"><b>A implementação desta opção é facultativa</b></font>.
+</p>
+<p>&nbsp;&nbsp;&nbsp;
+Mostra a tabela de símbolos exibindo os <font color="red">códigos de disperção</font> (= <font color="red"><i>hash codes</i></font>) e 
+a lista de chaves (= lista de palavras) que têm aquele código de dispersão.
+</p>
+<pre class="code">======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>M</b></font>
+. . . . . . . . . . . . . . . . . . . . . . .
+Tabela de simbolos: { codigo: lista de chaves }
+{   126: 'Living' }
+{   451: 'Peppiatt' }
+{  1795: 'Part' }
+{  2634: 'Revenge' }
+{  3695: 'Day' }
+{  4174: 'Dawn' }
+{  5197: 'Dead' }
+{  6158: 'A' }
+{  7987: 'Thor' }
+Continuar? [s/n]: <font color="red"><b>s</b></font>
+{ 18995: 'Presents' }
+{ 23194: 'les' }
+{ 26214: 's' }
+{ 26302: 'Return' }
+{ 29156: 'Attack' }
+{ 31354: 'ou' }
+{ 32227: 'Alsaciens' }
+{ 33681: 'First' }
+{ 33943: 'Team' }
+{ 34985: '3' }
+Continuar? [s/n]: <font color="red"><b>s</b></font>
+{ 36251: 'Evil' }
+{ 36481: 'of' }
+{ 37620: 'Mathilde' }
+{ 37971: 'Mutant' }
+{ 38449: 'Comedy' }
+{ 40685: 'Dark' }
+{ 41407: 'Tribute' }
+{ 41520: 'The' }
+{ 43110: 'Subhumanoid' }
+{ 44587: 'Flesh' }
+Continuar? [s/n]: <font color="red"><b>s</b></font>
+{ 44886: 'Terror' }
+{ 46269: 'to' }
+{ 46965: 'World' }
+{ 47559: 'Adrienne' }
+{ 49043: 'Canada' }
+{ 49295: 'Zombified' }
+{ 51185: 'Clarkson' }
+{ 51840: 'deux' }
+{ 53204: 'Son' }
+{ 54526: 'Television' }
+Continuar? [s/n]: <font color="red"><b>s</b></font>
+{ 56000: 'Eating' }
+{ 57657: 'Hellbound' }
+{ 64418: 'Aylesworth' }
+{ 64600: 'Bride' }
+{ 64799: 'Night' }
+Continuar? [s/n]: <font color="red"><b>s</b></font>
+
+(0.000811 segundos)
+</pre>
+ 
+
+<h3>Limpa a tabela de símbolos (opcional)</h3>
+  
+<p>&nbsp;&nbsp;&nbsp;
+<font color="red"><b>A implementação desta opção é facultativa</b></font>.
+</p>
+
+<p>&nbsp;&nbsp;&nbsp;
+Remove todas as palavras que estão na tabela de símbolos.
+Após a execução desta opção a tabela de símbolos estará vazia.
+</p>
+<pre class="code">======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>L</b></font>
+TS foi limpa
+
+(0.000187 segundos)
+</pre>
+
+
+
+<h3>Ordenar a lista de filmes por ordem de nota (mergeSort)</h3>
+  
+<p>&nbsp;&nbsp;&nbsp;
+Ordena a lista de filmes em ordem <font color="red"><b>decrescente de nota</b></font>
+utilizando o <tt>Mergesort</tt>.
+Para isto, você deverá escrever no 
+seu programa uma versão do <a href="http://www.ime.usp.br/~pf/algoritmos/aulas/mrgsrt.html">Mergesort</a> para <font color="red"><b>listas circulares duplamente encadeadas com cabeça</b></font>. Vixe! Baita nome! Ver a especificação mais adiante.
+</p>
+<pre class="code">======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>o</b></font>
+Lista de filmes ordenada por nota
+
+(3.8e-05 segundos)
+
+======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>m</b></font>
+--------------------------------------------------------------------------------
+Adrienne Clarkson Presents: A Tribute to Peppiatt &amp; Aylesworth: Canada's First Television Comedy Team (ano 1996):
+	 nota  8.7 	      6 votos 	 distribuicao [.....3...6] 
+--------------------------------------------------------------------------------
+Thor: The Dark World (ano 2013):
+	 nota  7.2 	 271146 votos 	 distribuicao [0..0004211] 
+--------------------------------------------------------------------------------
+"Alsaciens - ou les deux Mathilde, Les" (ano 1996):
+	 nota  4.7 	     19 votos 	 distribuicao [1..0..2103] 
+--------------------------------------------------------------------------------
+Night of the Day of the Dawn of the Son of the Bride of the Return of the Revenge of the Terror of the Attack of the Evil, Mutant, Hellbound, Flesh-Eating Subhumanoid Zombified Living Dead, Part 3 (ano 2005):
+	 nota  2.8 	      5 votos 	 distribuicao [8........2] 
+--------------------------------------------------------------------------------
+mostreListaFilmes: 4 (de 4) filme(s) exibido(s)
+
+(9.9e-05 segundos)
+</pre>
+
+<h3>Ordenar a lista de filmes por ordem de nome (mergeSort)</h3>
+  
+<p>&nbsp;&nbsp;&nbsp;
+Ordena a lista de filmes em ordem (lexicográfica) <font color="red"><b>crescente de nome</b></font> utilizando o <tt>Mergesort</tt>.
+Para isto, você deverá escrever no 
+seu programa uma versão do <a href="http://www.ime.usp.br/~pf/algoritmos/aulas/mrgsrt.html">Mergesort</a> para <font color="red"><b>listas circulares duplamente encadeadas com cabeça</b></font>. Vixe! baita nome!
+Ver a especificação mais adiante.
+</p><pre class="code">======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>O</b></font>
+Lista de filmes ordenada por nome
+
+(4e-05 segundos)
+
+======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>m</b></font>
+--------------------------------------------------------------------------------
+"Alsaciens - ou les deux Mathilde, Les" (ano 1996):
+	 nota  4.7 	     19 votos 	 distribuicao [1..0..2103] 
+--------------------------------------------------------------------------------
+Adrienne Clarkson Presents: A Tribute to Peppiatt &amp; Aylesworth: Canada's First Television Comedy Team (ano 1996):
+	 nota  8.7 	      6 votos 	 distribuicao [.....3...6] 
+--------------------------------------------------------------------------------
+Night of the Day of the Dawn of the Son of the Bride of the Return of the Revenge of the Terror of the Attack of the Evil, Mutant, Hellbound, Flesh-Eating Subhumanoid Zombified Living Dead, Part 3 (ano 2005):
+	 nota  2.8 	      5 votos 	 distribuicao [8........2] 
+--------------------------------------------------------------------------------
+Thor: The Dark World (ano 2013):
+	 nota  7.2 	 271146 votos 	 distribuicao [0..0004211] 
+--------------------------------------------------------------------------------
+mostreListaFilmes: 4 (de 4) filme(s) exibido(s)
+
+(9.7e-05 segundos)
+</pre>
+
+
+
+
+<h3>Ordenar a lista de filmes por ordem de nota (quickSort, opcional)</h3>
+  
+<p>&nbsp;&nbsp;&nbsp;
+<font color="red"><b>A implementação desta opção é facultativa</b></font>.
+</p>
+<p>&nbsp;&nbsp;&nbsp;
+Ordena a lista de filmes em ordem <font color="red"><b>decrescente de nota</b></font>
+utilizando o <tt>Quicksort</tt>.
+Para isto, você deverá escrever no 
+seu programa uma versão do <a href="http://www.ime.usp.br/~pf/algoritmos/aulas/quick.html">Quicksort</a> para <font color="red"><b>listas circulares duplamente encadeadas com cabeça</b></font>. Vixe! Baita nome! Ver a especificação mais adiante.
+</p><pre class="code">======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>q</b></font>
+Lista de filmes ordenada por nota
+
+(3.8e-05 segundos)
+
+======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>m</b></font>
+--------------------------------------------------------------------------------
+Adrienne Clarkson Presents: A Tribute to Peppiatt &amp; Aylesworth: Canada's First Television Comedy Team (ano 1996):
+	 nota  8.7 	      6 votos 	 distribuicao [.....3...6] 
+--------------------------------------------------------------------------------
+Thor: The Dark World (ano 2013):
+	 nota  7.2 	 271146 votos 	 distribuicao [0..0004211] 
+--------------------------------------------------------------------------------
+"Alsaciens - ou les deux Mathilde, Les" (ano 1996):
+	 nota  4.7 	     19 votos 	 distribuicao [1..0..2103] 
+--------------------------------------------------------------------------------
+Night of the Day of the Dawn of the Son of the Bride of the Return of the Revenge of the Terror of the Attack of the Evil, Mutant, Hellbound, Flesh-Eating Subhumanoid Zombified Living Dead, Part 3 (ano 2005):
+	 nota  2.8 	      5 votos 	 distribuicao [8........2] 
+--------------------------------------------------------------------------------
+mostreListaFilmes: 4 (de 4) filme(s) exibido(s)
+
+(9.7e-05 segundos)
+</pre>
+
+<h3>Ordenar a lista de filmes por ordem de nome (quicksort, opcional)</h3>
+  
+<p>&nbsp;&nbsp;&nbsp;
+<font color="red"><b>A implementação desta opção é facultativa</b></font>.
+</p>
+<p>&nbsp;&nbsp;&nbsp;
+Ordena a lista de filmes em ordem (lexicográfica) <font color="red"><b>crescente de nome</b></font> utilizando o <tt>Quicksort</tt>.
+Para isto, você deverá escrever no 
+seu programa uma versão do <a href="http://www.ime.usp.br/~pf/algoritmos/aulas/quick.html">Quicksort</a> para <font color="red"><b>listas circulares duplamente encadeadas com cabeça</b></font>. Vixe! baita nome!
+Ver a especificação mais adiante.
+</p><pre class="code">======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>Q</b></font>
+Lista de filmes ordenada por nome
+
+(3.4e-05 segundos)
+
+======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>m</b></font>
+--------------------------------------------------------------------------------
+"Alsaciens - ou les deux Mathilde, Les" (ano 1996):
+	 nota  4.7 	     19 votos 	 distribuicao [1..0..2103] 
+--------------------------------------------------------------------------------
+Adrienne Clarkson Presents: A Tribute to Peppiatt &amp; Aylesworth: Canada's First Television Comedy Team (ano 1996):
+	 nota  8.7 	      6 votos 	 distribuicao [.....3...6] 
+--------------------------------------------------------------------------------
+Night of the Day of the Dawn of the Son of the Bride of the Return of the Revenge of the Terror of the Attack of the Evil, Mutant, Hellbound, Flesh-Eating Subhumanoid Zombified Living Dead, Part 3 (ano 2005):
+	 nota  2.8 	      5 votos 	 distribuicao [8........2] 
+--------------------------------------------------------------------------------
+Thor: The Dark World (ano 2013):
+	 nota  7.2 	 271146 votos 	 distribuicao [0..0004211] 
+--------------------------------------------------------------------------------
+mostreListaFilmes: 4 (de 4) filme(s) exibido(s)
+
+(0.000128 segundos)
+</pre>
+
+
+<h3>Remover um filme</h3>
+  
+<p>&nbsp;&nbsp;&nbsp;
+Faz a procura de um filme e, após a
+confirmação do usuário, remove o filme da lista.
+</p><pre class="code">======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>r</b></font>
+Digite parte do nome do filme a ser procurado: <font color="red"><b>thor</b></font>
+AVISO: leiaString: string lido 'thor' tem 4 caracteres
+--------------------------------------------------------------------------------
+Thor: The Dark World (ano 2013):
+	 nota  7.2 	 271146 votos 	 distribuicao [0..0004211] 
+Esse e' o filme procurado? [s/n/x] (x para sair): <font color="red"><b>s</b></font>
+Filme removido
+
+(0.000235 segundos)
+
+======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>m</b></font>
+--------------------------------------------------------------------------------
+"Alsaciens - ou les deux Mathilde, Les" (ano 1996):
+	 nota  4.7 	     19 votos 	 distribuicao [1..0..2103] 
+--------------------------------------------------------------------------------
+Adrienne Clarkson Presents: A Tribute to Peppiatt &amp; Aylesworth: Canada's First Television Comedy Team (ano 1996):
+	 nota  8.7 	      6 votos 	 distribuicao [.....3...6] 
+--------------------------------------------------------------------------------
+Night of the Day of the Dawn of the Son of the Bride of the Return of the Revenge of the Terror of the Attack of the Evil, Mutant, Hellbound, Flesh-Eating Subhumanoid Zombified Living Dead, Part 3 (ano 2005):
+	 nota  2.8 	      5 votos 	 distribuicao [8........2] 
+--------------------------------------------------------------------------------
+mostreListaFilmes: 3 (de 3) filme(s) exibido(s)
+
+(0.000105 segundos)
+</pre>  
+
+
+
+<h3>
+Mostrar N filmes com nota menor que X e pelo menos V votos
+</h3>
+
+<p>&nbsp;&nbsp;&nbsp;
+Pergunta ao usuário uma nota máxima <font color="red"><tt>X</tt></font>, uma quantidade
+<font color="green"><tt>N</tt></font>, de filmes e um número <font color="blue"><tt>V</tt></font> de votos e
+exibe na tela os <font color="green"><tt>N</tt></font> melhores filmes com nota menor ou
+igual <font color="red"><tt>X</tt></font> e com pelo menos <font color="blue"><tt>V</tt></font> votos.
+<font color="green">Essa opção só deve ser utilizada quando a lista
+estiver ordenada por nota.</font>
+
+</p><pre class="code">======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>&lt;</b></font>
+Qual o numero de filmes a serem mostrado: <font color="red"><b>3</b></font>
+Qual a nota maxima: <font color="red"><b>4.6</b></font>
+Qual o numero minimo de votos: <font color="red"><b>3</b></font>
+--------------------------------------------------------------------------------
+Night of the Day of the Dawn of the Son of the Bride of the Return of the Revenge of the Terror of the Attack of the Evil, Mutant, Hellbound, Flesh-Eating Subhumanoid Zombified Living Dead, Part 3 (ano 2005):
+	 nota  2.8 	      5 votos 	 distribuicao [8........2] 
+--------------------------------------------------------------------------------
+Esses sao os 1 melhores filmes com nota menor que  4.6 e pelo menos 3 votos.
+
+(0.000333 segundos)
+</pre>
+  
+<h3>
+Mostrar N filmes com nota maior que X e pelo menos V votos
+</h3>
+
+<p>&nbsp;&nbsp;&nbsp;
+Pergunta ao usuário uma nota mínima <font color="red"><tt>X</tt></font>, uma quantidade
+<font color="green"><tt>N</tt></font> de filmes e um número <font color="blue"><tt>V</tt></font> de votos e 
+exibe na tela os <font color="green"><tt>N</tt></font> piores filmes com nota maior ou igual 
+a <font color="red"><tt>X</tt></font> e com pelo menos <font color="blue"><tt>V</tt></font> votos.
+<font color="green">Essa opção só deve ser utilizada quando a lista
+estiver ordenada por nota.</font>
+
+</p><pre class="code">======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>&gt;</b></font>
+Qual o numero de filmes a ser mostrado: <font color="red"><b>3</b></font>
+Qual a nota minima: <font color="red"><b>4.5</b></font>
+Qual o numero minimo de votos: <font color="red"><b>4</b></font>
+--------------------------------------------------------------------------------
+"Alsaciens - ou les deux Mathilde, Les" (ano 1996):
+	 nota  4.7 	     19 votos 	 distribuicao [1..0..2103] 
+--------------------------------------------------------------------------------
+Adrienne Clarkson Presents: A Tribute to Peppiatt &amp; Aylesworth: Canada's First Television Comedy Team (ano 1996):
+	 nota  8.7 	      6 votos 	 distribuicao [.....3...6] 
+--------------------------------------------------------------------------------
+Esses sao os 2 piores filmes com nota maior que  4.5 e pelo menos 4 votos.
+
+(0.000322 segundos)
+</pre>
+
+<h3>
+Limpar a lista de filmes
+</h3>
+<p>&nbsp;&nbsp;&nbsp;
+Nesta opção a lista é "limpa" e toda área alocada por ela é devolvida ao sistema.
+</p><pre class="code">======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>l</b></font>
+Lista de filmes foi limpa
+
+(2.8e-05 segundos)
+
+======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: <font color="red"><b>m</b></font>
+AVISO: mostreListaFilmes: lista de filmes vazia
+
+(4.8e-05 segundos)
+</pre>
+
+
+<h3>
+Sair do programa
+</h3>
+<p>&nbsp;&nbsp;&nbsp;
+Termina a execução do programa.
+</p><pre class="code">======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: x
+
+(2e-06 segundos)
+</pre>
+
+<!---------------------------------------------------------------------->
+<p>&nbsp;</p>
+<hr>
+<h2><center><font color="red">
+Lista de filmes
+</font></center></h2>
+
+<p>&nbsp;&nbsp;&nbsp;
+Os dados de cada filme devem ser armazenados em uma <font color="red"><b>lista
+duplamente encadeada circular com cabeça</b></font> tendo a seguinte estrutura.
+</p><pre class="code"><font color="red">Copiado do arquivo filmes.h</font>
+<!-- HTML generated using hilite.me --><div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #008800; font-style: italic">#define TAM_DIST 10</span>
+
+<span style="color: #666666">/*----------------------------------------------------------*/</span>
+<span style="color: #666666">/*</span> Estrutura Basica de uma Lista de Filmes                  <span style="color: #666666">*/</span>
+<span style="color: #666666">/*</span> Uma lista de filmes ser<span style="border: 1px solid #FF0000">á</span> uma lista __duplamente ligada__ <span style="color: #666666">*/</span>   
+<span style="color: #666666">/*</span> __com cabeca__ de objetos do tipo Filme                  <span style="color: #666666">*/</span>
+
+typedef struct celFilme Filme;
+struct celFilme 
+{
+    <span style="color: #666666">/*</span> campos referentes a infos sobre o filme <span style="color: #666666">*/</span>
+    char     dist[TAM_DIST<span style="color: #666666">+1</span>]; <span style="color: #666666">/*</span> distribuicao de notas do filme <span style="color: #666666">*/</span>
+                               <span style="color: #666666">/*</span> <span style="color: #666666">+1</span> para o <span style="color: #BB4444">'</span><span style="color: #BB6622; font-weight: bold">\0</span><span style="color: #BB4444">'</span> <span style="color: #666666">*/</span>
+    <span style="color: #AA22FF">int</span>      votos;       <span style="color: #666666">/*</span> numero de votos <span style="color: #666666">*/</span>
+    <span style="color: #AA22FF">float</span>    nota;        <span style="color: #666666">/*</span> nota do filme <span style="color: #666666">*/</span>
+    char    <span style="color: #666666">*</span>nome;        <span style="color: #666666">/*</span> nome do filme <span style="color: #666666">*/</span>
+    <span style="color: #AA22FF">int</span>      ano;         <span style="color: #666666">/*</span> ano  do filme <span style="color: #666666">*/</span>
+   
+    <span style="color: #666666">/*</span> celula de uma lista duplamente ligada <span style="color: #666666">*/</span>
+    Filme   <span style="color: #666666">*</span>prox;    <span style="color: #666666">/*</span> ponteiro para o proximo filme <span style="color: #666666">*/</span>
+    Filme   <span style="color: #666666">*</span>ant;     <span style="color: #666666">/*</span> ponteiro para o filme anterior <span style="color: #666666">*/</span>
+};
+
+typedef struct listaFilmes ListaFilmes;
+struct listaFilmes 
+{
+    <span style="color: #AA22FF">int</span>   nFilmes; <span style="color: #666666">/*</span> no<span style="color: #666666">.</span> de filmes na lista <span style="color: #666666">*/</span> 
+    Filme <span style="color: #666666">*</span>cab;    <span style="color: #666666">/*</span> ponteiro para a celula cabeca da lista de filmes <span style="color: #666666">*/</span>
+};
+</pre></div>
+</pre>
+<p>&nbsp;&nbsp;&nbsp;
+Os nomes dos filmes devem ser lidos com no máximo <code>TAM_STR</code> (<code>util.h</code>) caracteres. 
+Suponha que <tt>lst</tt> é um objeto do tipo <font color="green"><tt>ListaFilmes</tt></font>.
+Assim, a célula cabeça é <tt>lst-&gt;cab</tt>.
+A primeira célula da lista é <tt>lst-&gt;cab-&gt;prox</tt> e a última é <tt>lst-&gt;cab-&gt;ant</tt>. 
+Quando a lista <tt>lst</tt> está vazia, temos que
+</p><pre class="code"><!-- HTML generated using hilite.me --><div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">lst<span style="color: #666666">-&gt;</span>cab<span style="color: #666666">-&gt;</span>prox <span style="color: #666666">==</span> lst<span style="color: #666666">-&gt;</span>cab  <span style="color: #666666">&amp;&amp;</span>  lst<span style="color: #666666">-&gt;</span>cab<span style="color: #666666">-&gt;</span>ant <span style="color: #666666">==</span> lst<span style="color: #666666">-&gt;</span>cab
+</pre></div>
+</pre>
+ou, equivalentemente, 
+<pre class="code"><!-- HTML generated using hilite.me --><div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">lst<span style="color: #666666">-&gt;</span>nFilmes <span style="color: #666666">==</span> <span style="color: #666666">0</span>
+</pre></div>
+</pre>
+
+
+<!---------------------------------------------------------------------->
+<p>&nbsp;</p>
+<hr>
+<h2><center><font color="red">
+Tabela de símbolos (opcional)
+</font></center></h2>
+
+<p>&nbsp;&nbsp;&nbsp;
+O programa utilizará uma tabela de símbolos que tem como chaves as
+palavras que ocorrem nos nomes dos filmes e como itens filmes cujo título que contém as palavras. </p>
+
+<p>&nbsp;&nbsp;&nbsp;
+A tabela de símbolos será implementada através de uma tabela de
+dispersão. 
+O código será uma adaptação para este EP
+de uma implementação de <a href="http://www-cs-faculty.stanford.edu/~uno/http://www-cs-faculty.stanford.edu/~uno/">Donald E. Knuth</a> e
+das estruturas de dados de <a href="http://www.cs.princeton.edu/~rs/">Robert Sedgewick</a> contidas nas notas de aula de <a href="http://www.ime.usp.br/~pf/">Paulo Feofiloff</a>.
+A interface dessa implementação se encontra em <tt>st.h</tt>
+e a correspondente implementação em <tt>st.c</tt>. 
+</p>
+<pre class="code"><font color="red">Copiado do arquivo st.h</font>
+<!-- HTML generated using hilite.me --><div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #008800; font-style: italic">/*----------------------------------------------------------*/</span>
+<span style="color: #008800; font-style: italic">/* estrutura para a lista de ponteiros para filmes          */</span>
+<span style="color: #AA22FF; font-weight: bold">typedef</span> <span style="color: #AA22FF; font-weight: bold">struct</span> ptrFilmes ListaPtrFilmes;
+<span style="color: #AA22FF; font-weight: bold">struct</span> ptrFilmes
+{
+    <span style="color: #008800; font-style: italic">/* ponteiro para um filme na lista de filmes */</span>
+    Filme <span style="color: #666666">*</span>ptrFlm;
+
+    <span style="color: #008800; font-style: italic">/* ponteiro para o proximo ponteir de filme na lista */</span>
+    ListaPtrFilmes <span style="color: #666666">*</span>proxPtr;  
+};
+
+<span style="color: #008800; font-style: italic">/*-----------------------------------------------------------*/</span>
+<span style="color: #008800; font-style: italic">/* prototipos das funcoes que manipulam a tabela de simbolos */</span>
+<span style="color: #00BB00; font-weight: bold">void</span>  
+<span style="color: #00A000">initST</span>();
+
+ListaPtrFilmes <span style="color: #666666">*</span>
+<span style="color: #00A000">getFilmeST</span>(String palavra);
+
+<span style="color: #00BB00; font-weight: bold">void</span>  
+<span style="color: #00A000">putFilmeST</span>(String palavra, Filme <span style="color: #666666">*</span>flm);
+
+<span style="color: #00BB00; font-weight: bold">void</span>  
+<span style="color: #00A000">showST</span>(); 
+
+<span style="color: #00BB00; font-weight: bold">void</span>  
+<span style="color: #00A000">freeST</span>();
+</pre></div>
+</pre>
+
+
+<p>
+A função <tt>hash()</tt> que calcula o código 
+de dispersão (= <i>hash code</i>) de cada palavra deverá ser definida 
+no arquivo <tt>st.c</tt>. As colisões serão resolvidas através 
+de <i>separate chaining</i>: para cada código de dispersão ou índice <tt>h</tt>
+da tabela, há uma lista encadeada que armazena 
+palavras (chaves) em nomes de filmes que a função de dispersão leva
+  em <tt>h</tt>. A célula que representa cada palavra/chave possui um
+  ponteiro <tt>iniListaPtr</tt> para a lista ligada dos (ponteiros
+  para os) filmes que possuem a chave no seu nome.
+</p><pre class="code"><font color="red">Copiado do arquivo st.c</font>
+<!-- HTML generated using hilite.me --><div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #008800; font-style: italic">/*-----------------------------------------------------------*/</span>
+<span style="color: #008800; font-style: italic">/* Tamanho da Tabela de Dispersao </span>
+<span style="color: #008800; font-style: italic"> *</span>
+<span style="color: #008800; font-style: italic"> * 65521 e o maior primo menor que 2^16 = 65536 Observacao:</span>
+<span style="color: #008800; font-style: italic"> * para este EP talvez o tamanho da tabela pudesse ser</span>
+<span style="color: #008800; font-style: italic"> * menor, 65521 talvez seja um exagero...  </span>
+<span style="color: #008800; font-style: italic"> *</span>
+<span style="color: #008800; font-style: italic"> * No EP M eh uma constante, mas podia ser uma variavel.</span>
+<span style="color: #008800; font-style: italic"> */</span> 
+<span style="color: #008800">#define M 65521</span>
+
+<span style="color: #008800; font-style: italic">/*-----------------------------------------------------------*/</span>
+<span style="color: #008800; font-style: italic">/* funcao que calcula o codigo de dispersao (hash code) de   </span>
+<span style="color: #008800; font-style: italic"> * cada chave/palavra.</span>
+<span style="color: #008800; font-style: italic"> */</span>
+<span style="color: #AA22FF; font-weight: bold">static</span> <span style="color: #00BB00; font-weight: bold">int</span>
+<span style="color: #00A000">hash</span>(String palavra);
+
+<span style="color: #008800; font-style: italic">/*----------------------------------------------------------*/</span>
+<span style="color: #008800; font-style: italic">/* Estrutura Basica da Tabela de Simbolos: </span>
+<span style="color: #008800; font-style: italic"> * </span>
+<span style="color: #008800; font-style: italic"> * definicao de uma celula/no' da lista de colisoes</span>
+<span style="color: #008800; font-style: italic"> */</span>
+<span style="color: #AA22FF; font-weight: bold">typedef</span> <span style="color: #AA22FF; font-weight: bold">struct</span> celST CelST;
+<span style="color: #AA22FF; font-weight: bold">struct</span> celST 
+{
+    <span style="color: #008800; font-style: italic">/* ponteiro para uma palavra que ocorre no titulo de algum filme */</span>
+    String palavra; 
+
+    <span style="color: #008800; font-style: italic">/* ponteiro para lista de ponteiros para filmes que possuem a</span>
+<span style="color: #008800; font-style: italic">     * palavra em seu titulo */</span>
+    ListaPtrFilmes <span style="color: #666666">*</span>iniListaPtr;
+
+    <span style="color: #008800; font-style: italic">/* ponteiro para a proxima celula na tabela de dispersao */</span>
+    CelST <span style="color: #666666">*</span>proxST;
+};
+
+<span style="color: #008800; font-style: italic">/*-----------------------------------------------------------*/</span>
+<span style="color: #008800; font-style: italic">/* ponteiros para as M listas de colisoes: para cada h em</span>
+<span style="color: #008800; font-style: italic"> * [0..M-1], hashHead[h] e um ponteiro para o inicio da lista</span>
+<span style="color: #008800; font-style: italic"> * encadeada de celulas do tipo CelST que contem as palavras cujo</span>
+<span style="color: #008800; font-style: italic"> * valor da funcao de hash e' h.</span>
+<span style="color: #008800; font-style: italic"> */</span>
+<span style="color: #AA22FF; font-weight: bold">static</span> CelST <span style="color: #666666">*</span>hashHead[M];
+
+<span style="color: #008800; font-style: italic">/* numero de chaves na tabela de simbolos */</span>
+<span style="color: #AA22FF; font-weight: bold">static</span> <span style="color: #00BB00; font-weight: bold">long</span> nChaves <span style="color: #666666">=</span> <span style="color: #666666">0</span>; 
+</pre></div>
+</pre>
+
+<!---------------------------------------------------------------------->
+<p>&nbsp;</p>
+<hr>
+<h2>
+Formato do arquivo de entrada
+</h2>
+
+<p>&nbsp;&nbsp;&nbsp;
+O arquivo principal com os dados para este EP  é <tt>imdb-ratings.list</tt> que foi copiado de
+<a href="http://www.imdb.com/interfaces">http://www.imdb.com/interfaces</a>.
+O arquivo <tt>imdb-ratings-limpo.list</tt> foi criado pelo executável removendo-se os filmes duplicados de
+<tt>imdb-ratings.list</tt>.
+
+</p><p>&nbsp;&nbsp;&nbsp;
+O arquivo com os dados de entrada tem, além dos dados a serem lidos,
+várias linhas com comentários que devem ser ignorados.
+As linhas que devem ser lidas começam com <code>6</code> espaços em branco (<code>'&nbsp;'</code>) seguidos de um dígito (<code>'0'..'9'</code>) ou do caractere ponto 
+(<code>'.'</code>).
+
+</p><p>&nbsp;&nbsp;&nbsp;
+Cada linha com uma avaliação de um filme contém, na ordem, 
+</p><ol>
+  <li> <font color="#009999"><code>6</code> espaços em branco</font>,
+</li><li> <font color="red"><code>10</code> caracteres</font> representando a distribuição dos votos do filme (por exemplo, <font color="red"><code>0000000133</code></font>),
+</li><li> <font color="blue">um inteiro</font> com o número de votantes (por exemplo, <font color="blue"><code>279506</code></font>),
+</li><li> <font color="green">um float</font> representa a nota do filme (por exemplo, <font color="green"><code>8.7</code></font>), 
+</li><li> <font color="magenta">um string</font> com o nome do filme (por exemplo, <font color="magenta"><code>Cidade de Deus</code></font>), e
+</li><li> <font color="#ffaa00">um inteiro</font> entre parênteses, que é o ano do filme (por exemplo, <font color="#ffaa00"><code>2002</code></font>).
+</li></ol>
+
+<p>&nbsp;&nbsp;&nbsp;
+Podem aparecer filmes duplicados no arquivo de entrada. 
+Por exemplo, a seguinte entrada aparece duplicada. 
+</p><pre class="code">      0000000124   72392   8.8  Casablanca (1942)
+      0000000124   72392   8.8  Casablanca (1942)
+</pre>
+Somente uma entrada para cada filme deve ser inserida na lista pela função de leitura.
+Para isto considerarmos que <font color="red"><b>dois filmes são iguais</b></font> se eles têm a mesma <font color="green">nota</font>, <font color="magenta">nome</font> e <font color="#ffaa00">ano</font>.
+
+<p>
+Assim, devemos observar que os seguintes filmes são diferentes.
+</p><pre class="code">      0000000124   72392   8.8  Casablanca (1942)
+      4....0..03      11   5.5  Casablanca (1961)
+      1.000.0015      36   4.9  Casablanca (2002)
+      0.0.021210      60   7.0  Casablanca 50th Anniversary Special: You Must Remember This (1992) (V)
+      0000212000      71   5.6  Casablanca Driver (2004)
+      2121000000      84   3.4  Casablanca Express (1989)
+      3...11.1.2       8   5.4  Casablanca revisitada (1992)
+      ...021310.      25   5.9  Casablanca, Casablanca (1985)
+      2..111..02      13   5.2  Casablanca, nid d'espions (1963)
+      .1...133.1       9   6.3  Casablancais, Les (1999)
+      00.1023000      55   6.2  Cirkus Casablanca (1981)
+      4.....1..4       7   5.3  Juego sucio en Casablanca (1985)
+      0000012211     802   7.0  Night in Casablanca, A (1946)
+</pre>
+
+<p>&nbsp;&nbsp;&nbsp;
+Para complicar um pouco a vida, às vezes a linha termina com outro par
+de parênteses com uma das palavras: <code>mini</code>, <code>TV</code>
+ou <code>V</code>, ou com comentários entre chaves (caracteres '{' e '}'). Essa parte deve ser ignorada.
+
+</p><p>&nbsp;&nbsp;&nbsp;
+Outro problema: às vezes o ano é desconhecido e é representado por
+"????", como mostra o exemplo abaixo.
+</p><pre>      2000001002     107   4.3  "Gigolos" (????)
+</pre>
+
+<p>
+<b><font color="red">Vocês não precisam se preocupar</font></b> com esses problemas,
+pois a função para a leitura desse arquivo (<tt>carregueListaFilmes</tt>)
+é totalmente fornecida a você no já famoso <a href="https://www.ime.usp.br/~cris/mac121/eps/ep5/esqueleto/"><code>esqueleto</code></a>,
+em <tt>iofilmes.c</tt>.
+
+<!------------------------------------------------------------------------------>
+</p><p>&nbsp;</p>
+<hr>
+<h2>
+Protótipos das funções fornecidas e parcialmente fornecidas
+</h2>
+
+<p>
+Aqui estão listados os protótipos das funções fornecidas ou parcialmente fornecidas e
+que você utilizará em algum dos trechos de código que deverá escrever.
+O comportamento das funções está descrito nos comentários que precedem
+as funções nos arquivos do <a href="https://www.ime.usp.br/~cris/mac121/eps/ep5/esqueleto/">esqueleto</a>.
+</p>
+
+<p>
+No módulo <tt>main.c</tt> temos as funções
+</p><pre class="code"><!-- HTML generated using hilite.me --><div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #00BB00; font-weight: bold">int</span> 
+<span style="color: #00A000">main</span>(<span style="color: #00BB00; font-weight: bold">int</span> argc, <span style="color: #00BB00; font-weight: bold">char</span> <span style="color: #666666">*</span>argv[]); 
+
+<span style="color: #AA22FF; font-weight: bold">static</span> <span style="color: #00BB00; font-weight: bold">char</span>  
+<span style="color: #00A000">leiaOpcao</span>();
+</pre></div>
+</pre>
+A função <tt>main()</tt> está parcialmente feita.
+
+<p>
+No módulo <tt>iofilmes.c</tt> temos as funções
+</p><pre class="code"><!-- HTML generated using hilite.me --><div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #00BB00; font-weight: bold">void</span>   
+<span style="color: #00A000">carregueListaFilmes</span>(ListaFilmes <span style="color: #666666">*</span>lst);
+
+<span style="color: #00BB00; font-weight: bold">void</span>   
+<span style="color: #00A000">graveListaFilmes</span>(ListaFilmes <span style="color: #666666">*</span>lst);
+
+<span style="color: #00BB00; font-weight: bold">void</span>   
+<span style="color: #00A000">mostreFilme</span>(Filme <span style="color: #666666">*</span>flm);
+</pre></div>
+</pre>
+Atenção, a função <tt>carregueListaFilmes()</tt> só funcionará após as
+funções <tt>contemFilme()</tt> e <tt>insereFilme()</tt> tiverem sido feitas.
+<p></p>
+
+<p>
+No módulo <tt>filmes.c</tt> temos as funções
+</p><pre class="code"><!-- HTML generated using hilite.me --><div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">Filme <span style="color: #666666">*</span>
+<span style="color: #00A000">crieFilme</span>(<span style="color: #00BB00; font-weight: bold">char</span> <span style="color: #666666">*</span>dist, <span style="color: #00BB00; font-weight: bold">int</span> votos, <span style="color: #00BB00; font-weight: bold">float</span> nota, <span style="color: #00BB00; font-weight: bold">char</span> <span style="color: #666666">*</span>nome, <span style="color: #00BB00; font-weight: bold">int</span> ano);
+</pre></div>
+</pre>
+<p></p>
+
+
+<p>
+Finalmente, no módulo <tt>util.c</tt> temos as funções
+</p><pre class="code"><!-- HTML generated using hilite.me --><div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #00BB00; font-weight: bold">int</span>   
+<span style="color: #00A000">strCmp</span>(<span style="color: #AA22FF; font-weight: bold">const</span> <span style="color: #00BB00; font-weight: bold">char</span> <span style="color: #666666">*</span>s1, <span style="color: #AA22FF; font-weight: bold">const</span> <span style="color: #00BB00; font-weight: bold">char</span> <span style="color: #666666">*</span>s2);
+
+<span style="color: #00BB00; font-weight: bold">int</span>   
+<span style="color: #00A000">leiaString</span>(<span style="color: #00BB00; font-weight: bold">char</span> s[], <span style="color: #00BB00; font-weight: bold">int</span> size);
+
+<span style="color: #00BB00; font-weight: bold">void</span> <span style="color: #666666">*</span>
+<span style="color: #00A000">mallocSafe</span>(<span style="color: #00BB00; font-weight: bold">size_t</span> n);
+</pre></div>
+</pre>
+<p></p>
+<p></p>
+
+
+<!------------------------------------------------------------------------------>
+<p>&nbsp;</p>
+<hr>
+<h2>
+Protótipos das funções que você deve implementar.
+</h2>
+<p>&nbsp;</p>
+
+<p>
+Aqui estão listados os protótipos das funções que você deverá escrever.
+O comportamento das funções está descrito nos comentários que precedem
+as funções nos arquivos do <a href="https://www.ime.usp.br/~cris/mac121/eps/ep5/esqueleto">esqueleto</a> ou ainda no meio
+da função, como no caso das funções <tt>main()</tt> no <tt>main.c</tt>.<br>
+Você (sempre!) pode escrever mais funções auxiliares se achar necessário. 
+Utilize as funções da biblioteca do C que desejar.
+</p>
+
+<p>
+Em <tt>main.c</tt>, parte do corpo da função
+</p><pre class="code"><!-- HTML generated using hilite.me --><div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #00BB00; font-weight: bold">int</span> 
+main(<span style="color: #00BB00; font-weight: bold">int</span> argc, <span style="color: #00BB00; font-weight: bold">char</span> <span style="color: #666666">*</span>argv[])
+</pre></div>
+
+</pre>
+<p></p>
+
+<p>
+No módulo <tt>iofilmes.c</tt> encontramos as funções:
+</p><pre class="code"><!-- HTML generated using hilite.me --><div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #00BB00; font-weight: bold">void</span>
+<span style="color: #00A000">mostreListaFilmes</span>(ListaFilmes <span style="color: #666666">*</span>lst);
+
+<span style="color: #00BB00; font-weight: bold">void</span>
+<span style="color: #00A000">mostrePioresFilmes</span>(ListaFilmes <span style="color: #666666">*</span>lst);
+
+<span style="color: #00BB00; font-weight: bold">void</span>
+<span style="color: #00A000">mostreMelhoresFilmes</span>(ListaFilmes <span style="color: #666666">*</span>lst);
+</pre></div>
+</pre>
+<p></p>
+
+
+<p>
+No módulo <tt>filmes.c</tt> temos as funções:
+</p><pre class="code"><!-- HTML generated using hilite.me --><div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">ListaFilmes <span style="color: #666666">*</span>
+<span style="color: #00A000">crieListaFilmes</span>();
+
+Filme <span style="color: #666666">*</span>
+<span style="color: #00A000">crieFilme</span>(<span style="color: #00BB00; font-weight: bold">char</span> <span style="color: #666666">*</span>dist, <span style="color: #00BB00; font-weight: bold">int</span> votos, <span style="color: #00BB00; font-weight: bold">float</span> nota, <span style="color: #00BB00; font-weight: bold">char</span> <span style="color: #666666">*</span>nome, <span style="color: #00BB00; font-weight: bold">int</span> ano);
+
+<span style="color: #00BB00; font-weight: bold">void</span> 
+<span style="color: #00A000">libereListaFilmes</span>(ListaFilmes <span style="color: #666666">*</span>lst);
+
+<span style="color: #00BB00; font-weight: bold">void</span> 
+<span style="color: #00A000">libereFilme</span>(Filme <span style="color: #666666">*</span>flm);
+
+Bool 
+<span style="color: #00A000">contemFilme</span>(ListaFilmes <span style="color: #666666">*</span>lst, Filme <span style="color: #666666">*</span>flm);
+
+<span style="color: #00BB00; font-weight: bold">void</span> 
+<span style="color: #00A000">insiraFilme</span>(ListaFilmes <span style="color: #666666">*</span>lst, Filme <span style="color: #666666">*</span>flm);
+
+<span style="color: #00BB00; font-weight: bold">void</span> 
+<span style="color: #00A000">removaFilme</span>(ListaFilmes <span style="color: #666666">*</span>lst, Filme <span style="color: #666666">*</span>flm);
+
+<span style="color: #00BB00; font-weight: bold">void</span> 
+<span style="color: #00A000">mergeSortFilmes</span>(ListaFilmes <span style="color: #666666">*</span>lst, Criterio criterio);
+
+<span style="color: #00BB00; font-weight: bold">void</span> 
+<span style="color: #00A000">quickSortFilmes</span>(ListaFilmes <span style="color: #666666">*</span>lst, Criterio criterio); /* opcional */
+
+<span style="color: #00BB00; font-weight: bold">void</span> 
+<span style="color: #00A000">hashFilmes</span>(ListaFilmes <span style="color: #666666">*</span>lst); /* opcional */
+</pre></div>
+</pre>
+Atenção, a função <tt>carregueListaFilmes()</tt> (<tt>iofilmes.c</tt>) só funcionará 
+após as funções <tt>contemFilme()</tt> e <tt>insereFilme()</tt> tiverem sido feitas.
+<p></p>
+
+
+
+<p>
+No módulo <tt>util.c</tt>:
+</p><pre class="code"><!-- HTML generated using hilite.me --><div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">Bool
+achePalavra(<span style="color: #00BB00; font-weight: bold">unsigned</span> <span style="color: #00BB00; font-weight: bold">char</span> <span style="color: #666666">*</span>pal, <span style="color: #00BB00; font-weight: bold">int</span> tPal, <span style="color: #00BB00; font-weight: bold">unsigned</span> <span style="color: #00BB00; font-weight: bold">char</span> <span style="color: #666666">*</span>texto, <span style="color: #00BB00; font-weight: bold">int</span> tTex)
+</pre></div>
+</pre>
+<p></p>
+
+<p>
+No módulo <tt>st.c</tt>, todas as função são opcionais:
+</p><pre class="code"><!-- HTML generated using hilite.me --><div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #00BB00; font-weight: bold">void</span>  
+<span style="color: #00A000">initST</span>();
+
+ListaPtrFilmes <span style="color: #666666">*</span>
+<span style="color: #00A000">getFilmeST</span>(String palavra);
+
+<span style="color: #00BB00; font-weight: bold">void</span>  
+<span style="color: #00A000">putFilmeST</span>(String palavra, Filme <span style="color: #666666">*</span>flm);
+
+<span style="color: #00BB00; font-weight: bold">void</span>  
+<span style="color: #00A000">showST</span>(); 
+
+<span style="color: #00BB00; font-weight: bold">void</span>  
+<span style="color: #00A000">freeST</span>();
+
+<span style="color: #AA22FF; font-weight: bold">static</span> <span style="color: #00BB00; font-weight: bold">int</span>
+<span style="color: #00A000">hash</span>(String palavra);
+</pre></div>
+</pre>
+<p></p>
+
+
+<!----------------------------------------------------------------------------->
+<p>&nbsp;</p>
+<hr>
+<h2>
+Descrição dos arquivos do EP
+</h2>
+
+<p>
+Aqui temos uma visão geral dos arquivos que compõem o EP.
+<font color="red"><b>Você deverá depositar na página de MAC0121 apenas um arquivo
+<tt>zip</tt> ou <tt>tar.gz</tt>
+contendo todos os arquivos com extensão <tt>.h</tt> e <tt>.c</tt> do seu EP5.</b></font> 
+</p>
+
+<p>
+Este exercício-programa é formado por 10 arquivos.<br>
+O diretório com o esqueleto do EP contém, além desses 10 arquivos, um Makefile para
+gerar o executável <tt>imdb</tt> do EP e <tt>.zip</tt>
+com todos os arquivos do EP.
+Mais precisamente, os arquivos no diretório com o esqueleto são
+</p><pre class="saida">prompt/esqueleto&gt; ls -l
+total 100
+-rw-r--r--@ 1 cris  19297 Nov 14 13:16 00-esqueleto.zip
+-rw-r--r--@ 1 cris    578 Nov 14 13:16 Makefile
+-rw-r--r--@ 1 cris   9128 Nov 14 13:16 filmes.c
+-rw-r--r--@ 1 cris   2089 Nov 14 13:16 filmes.h
+-rw-r--r--@ 1 cris  12821 Nov 14 13:16 iofilmes.c
+-rw-r--r--@ 1 cris    641 Nov 14 13:16 iofilmes.h
+-rw-r--r--@ 1 cris   8163 Nov 14 13:16 main.c
+-rw-r--r--@ 1 cris   1863 Nov 14 13:16 main.h
+-rw-r--r--@ 1 cris   7717 Nov 17 21:26 st.c
+-rw-r--r--@ 1 cris   1298 Nov 14 13:16 st.h
+-rw-r--r--@ 1 cris   6111 Nov 14 13:16 util.c
+-rw-r--r--@ 1 cris   1196 Nov 14 13:16 util.h
+</pre>
+Para compilar o programa e gerar o executável basta,
+na linha de comando, digitar <tt>make</tt>.
+Faça isto assim que baixar o esqueleto e você verá as seguintes mensagens e
+um executável de nome <tt>pitao</tt> será gerado.  
+<pre class="saida">prompt/esqueleto&gt; <font color="red">make</font>
+gcc -g -Wall -g -O0 -ansi -pedantic -Wno-unused-result -c main.c
+gcc -g -Wall -g -O0 -ansi -pedantic -Wno-unused-result -c util.c
+gcc -g -Wall -g -O0 -ansi -pedantic -Wno-unused-result -c iofilmes.c
+gcc -g -Wall -g -O0 -ansi -pedantic -Wno-unused-result -c filmes.c
+gcc -g -Wall -g -O0 -ansi -pedantic -Wno-unused-result -c st.c
+<font color="red">st.c:127:1: warning: unused function 'hash' [-Wunused-function]
+hash(String palavra)
+^
+st.c:106:15: warning: unused variable 'hashHead' [-Wunused-variable]
+static CelST *hashHead[M];
+              ^
+st.c:109:12: warning: unused variable 'nChaves' [-Wunused-variable]
+static int nChaves = 0;
+           ^
+3 warnings generated.</font>
+gcc main.o util.o iofilmes.o filmes.o st.o -o imdb
+</pre>
+Note que, apesar de no esqueleto o corpo das funções que
+deverão ser feitas estar vazio, o EP compila
+<font color="red">sem erros de sintaxe</font> e com apenas 3 avisos
+devido a definições que foram feitas em <tt>st.c</tt> mas não foram utilizadas.
+No entanto, se você executar o programa imediatamente, ele não fará grandes coisas :-(.
+<p></p>
+<pre class="saida"><font color="red">AVISO: crieListaFilmes em filmes.c: Vixe! Ainda nao fiz essa funcao ...</font>
+MAC0121 2019 - EP5
+The Internet Movie Database (Nov 16 2019, 23:43:07)
+[GCC 4.2.1 Compatible Apple LLVM 9.1.0 (clang-902.0.39.1)] on Mac OS X
+
+======================================================================
+  (c) carregar um arquivo de dados sem eliminar repeticoes
+  (C) carregar um arquivo de dados eliminando repeticoes
+  (g) gravar   a lista atual em um arquivo
+  (p) procurar a nota de um filme
+  (h) criar    a  TS com as palavras em nomes de filmes (opcional)
+  (P) procurar na TS a nota de um filme (opcional)
+  (M) mostrar  a  TS (opcional)
+  (L) limpar   a  TS (opcional)
+  (i) inserir  um filme
+  (r) remover  um filme
+  (o) ordenar  a lista de filmes por nota (mergeSort)
+  (O) ordenar  a lista de filmes por nome (mergeSort)
+  (q) ordenar  a lista de filmes por nota (quickSort, opcional)
+  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)
+  (m) mostrar  todos os filmes
+  (&lt;) mostrar  N filmes com nota _menor_ que X e pelo menos V votos
+  (&gt;) mostrar  N filmes com nota _maior_ que X e pelo menos V votos
+  (l) limpar   a lista de filmes
+  (x) sair     do programa
+
+Digite uma opcao: 
+</pre>
+<p>
+Agora, passamos a descrição dos arquivos.<br>
+</p><ul>
+<!------------------------------------------------------------------------------>
+<li><font color="red"><tt>main.c</tt></font>.<br>
+  Contém a função <tt>main()</tt> que está parcialmente escrita.<br>
+</li>
+
+<!------------------------------------------------------------------------------>
+<li><font color="red"><tt>main.h</tt></font>.<br>
+  Nada precisa ser feito ou alterado neste arquivo que contém apenas a
+  declaração de algumas constantes utilizadas pela
+  função <tt>main()</tt>.<br>
+</li>
+
+  <!------------------------------------------------------------------------------>
+<li><font color="green"><tt>iofilmes.c</tt></font>.<br>
+  Contém as definições de funções de entrada e saída.
+  Algumas funções deste módulo estão por fazer.
+</li>
+
+<!------------------------------------------------------------------------------>
+<li><font color="green"><tt>iofilmes.h</tt></font>.<br>  Nada precisa
+  ser feito aqui. É a interface para as funções de entrada e saída do
+  módulo <tt>iofilmes.c</tt>.
+</li>
+ 
+ <!------------------------------------------------------------------------------>
+<li><font color="blue"><tt>filmes.c</tt></font>.<br>
+   Deve ser o arquivo principal deste EP com as implementações de funções 
+  de criam, comparam, buscam, inserem, removem e ordenam os objetos do filmes (tipo <tt>Filme</tt>) 
+  e  lista de filmes (tipo <tt>ListaFilmes</tt>).
+</li>
+ 
+   <!------------------------------------------------------------------------------>
+<li><font color="blue"><tt>filmes.h</tt></font>.<br>
+  Nada precisa ser feito ou alterado neste arquivo.
+  É a interface para as funções em <tt>filmes.c</tt>.
+  
+</li>
+
+<!------------------------------------------------------------------------------>
+<li><font color="red"><tt>util.c</tt></font>.<br>
+  Contém as definições das funções de uso geral declaradas em <tt>util.h</tt>.
+  Para achar um filme com nome contendo o "string" definido pelo
+  usuário, você deve implementar a função <tt>achePalavra()</tt>.
+  Está é a única função deste arquivo que ainda precisa ser escrita.
+</li>
+
+<!------------------------------------------------------------------------------>
+<li><font color="red"><tt>util.h</tt></font>.<br>
+  Interface para <tt>util.c</tt>.
+</li>
+  
+
+<!------------------------------------------------------------------------------>
+<li><font color="green"><tt>util.c</tt></font>.<br>
+  Contém as definições das funções que manipulam a tabela de símbolos.
+</li>
+
+<!------------------------------------------------------------------------------>
+<li><font color="green"><tt>st.h</tt></font>.<br>
+  Interface para <tt>util.c</tt>.
+</li>
+  
+
+<!------------------------------------------------------------------------------>
+<li><font color="green"><tt>Makefile</tt></font>.
+Para compilar e gerar o executável <tt>imdb</tt> do
+EP5 basta digitar <font color="red"><tt>make</tt></font> no prompt.<br>
+
+<pre class="saida">prompt&gt; <font color="red">make</font>
+gcc -Wall -O2 -ansi -pedantic -Wno-unused-result -c main.c
+gcc -Wall -O2 -ansi -pedantic -Wno-unused-result -c util.c
+gcc -Wall -O2 -ansi -pedantic -Wno-unused-result -c iofilmes.c
+gcc -Wall -O2 -ansi -pedantic -Wno-unused-result -c filmes.c
+gcc -Wall -O2 -ansi -pedantic -Wno-unused-result -c st.c 
+gcc main.o util.o iofilmes.o filmes.o st.o -o imdb
+</pre>
+
+</li></ul>
+
+<!---------------------------------------------------------------------->
+<p>&nbsp;</p>
+<hr>
+<h2>
+Arquivos de dados fornecidos
+</h2>
+
+<p>&nbsp;&nbsp;&nbsp;
+Arquivos de entrada no formato do IMDB, com extensão <code>.list</code>, podem ser
+obtidos <a href="https://www.ime.usp.br/~cris/mac121/eps/ep5/arquivos/">deste diretório</a>. Inclusive o arquivo
+<code>ratings</code> com as notas de mais de 570 mil filmes.
+O executável gasta um tempo razoável para carregar essa lista de
+filmes eliminando os filmes repetidos (opção 'C'). 
+Recomendamos que você não use os arquivos <code>imdb-ratings.list</code>
+para testar o seu programa durante a fase de desenvolvimento. 
+Os demais arquivos <code>.list</code>
+fornecidos podem ajudar você durante o desenvolvimento, mas
+recomendamos que você monte outros arquivos para teste (contendo os seus
+filmes favoritos, ou desfavoritos, ou com nomes iguais ou bizarros etc). Caso o tamanho
+dos arquivos permita, os compartilhe conosco via fórum.
+
+</p><p>&nbsp;&nbsp;&nbsp;
+O arquivo <code>imdb-ratings.list</code> contém muitos filmes que consideramos repetidos.
+O arquivo <code>imdb-ratings-limpo.list</code> é uma versão "sem
+  repetições" que pode ser carregada rapidamente com a opção 'c'.
+
+
+
+<!----------------------------------------------------------------------
+<p>&nbsp;</p>
+<hr>
+<h2>
+Funções que você deve implementar
+</h2>
+<p>&nbsp;&nbsp;&nbsp;
+Além da função <code>main</code>, você deve implementar as três funções descritas a seguir.
+
+<p>&nbsp;&nbsp;&nbsp;
+A função
+<pre class="code">
+int <font color="red">achaFilme</font>(Lista *lista, Filme *f);
+</pre>
+recebe um ponteiro <code>lista</code> de uma lista de filmes e um ponteito <code>f</code> para um filme.
+A função devolve <code>TRUE</code> se o filme está na lista e devolve <code>FALSE</code> em caso contrário.
+Para isto considerarmos que <font color="red"><b>dois filmes são iguais</b></font> se eles têm a mesma <font color="green">nota</font>, <font color="magenta">nome</font> e <font color="#ffaa00">ano</font>.
+O ponteito <code>lista</code> contém o endereço de 
+para uma célula do tipo <code>Lista</code> que contém os endereços
+<font color="red"><code>ini</code></font> e <font color="blue"><code>fim</code></font> do início e fim de uma
+<font color="red">lista duplamente encadeada</font> de filmes.
+
+<p>&nbsp;&nbsp;&nbsp;
+A função <font color="red"><code>achaFilme</code></font> precisa ser implementada para que a função <code>insereFilme</code> passe
+a funcionar corretamente.
+
+<p>&nbsp;&nbsp;&nbsp;
+A opção <b>(o)</b> permite a ordenação da lista de filmes, que ao
+final deve ficar em ordem decrescentes de notas.
+Para a ordena&ccedil;&atilde;o voc&ecirc; deve implementar o algoritmo
+Quicksort adaptado para listas encadeadas.
+O prot&oacute;tipo da função deve ser o seguinte:
+
+<pre class="code">
+void <font color="magenta">quickSort</font>(Lista *lista);
+</pre>
+
+<p>&nbsp;&nbsp;&nbsp;
+A opção <b>(p)</b> e <b>(r)</b> permitem a procura de um filme
+usando parte do nome. Para isso, seu programa deve 
+perguntar ao usuário a parte do nome a ser procurada e,
+como &eacute; possível encontrar vários filmes
+contendo uma certa palavra, o usuário deve confirmar se o filme foi
+achado ou não. Rode o executável para entender melhor esse
+procedimento.
+
+<p>&nbsp;&nbsp;&nbsp;
+Para achar um filme com nome contendo o "string" definido pelo
+usuário, você deve implementar a função <font color="green"><code>achaPalavra</code></font> com o
+seguinte protótipo:
+
+<pre class="code">
+int <font color="green">achaPalavra</font>(unsigned char *pal, int tPal, unsigned char *texto, int codeexto);
+</pre>
+
+que recebe um string <code>pal</code> com tamanho <code>tPal</code>, e outro
+string <code>texto</code> com tamanho <code>codeexto</code>. A função deve
+devolver <code>TRUE</code> caso a sequência <code>pal</code> occorra em
+<code>texto</code>, e <code>FALSE</code> em caso contrário.
+
+<p>&nbsp;&nbsp;&nbsp;
+As opções <b>(M)</b> e <b>(u)</b> podem ser utilizadas para mostrar o
+<font color="green"><code>N</code></font>
+ melhores ou piores filmes em relação a uma nota <font color="red"><code>X</code></font>
+e com pelo menos <font color="blue"><code>V</code></font> votos. Por
+exemplo, para um filme entrar na lista dos 250 melhores filmes do
+IMDB, al&eacute;m de uma boa nota, ele precisa receber pelo menos
+25.000 votos.
+Você pode definir o protótipo
+que desejar para essas funções, desde que o seu comportamento seja
+compatível com o do executável. Recomendamos que ela seja baseada na
+função <font color="blue"><code>mostraLista</code></font> contida no esqueleto.
+-->
+
+<!---------------------------------------------------------------------->
+</p><p>&nbsp;</p>
+<p>&nbsp;</p>
+<!---------------------------------------------------------------------->
+
+
+<hr>
+<address></address>
+ 
+  
+</body></html>

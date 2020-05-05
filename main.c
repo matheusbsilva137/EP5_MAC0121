@@ -28,6 +28,7 @@
 
 #include <stdio.h>  /* printf(), scanf() */ 
 #include <time.h>   /* CLOCKS_PER_SECOND */
+#include <string.h>   /* CLOCKS_PER_SECOND */
 
 #include "main.h"
 
@@ -53,11 +54,15 @@ static char  leiaOpcao();
 int 
 main(int argc, char *argv[])
 {
-    ListaFilmes *lst = crieListaFilmes(); 
+    ListaFilmes *lst = crieListaFilmes();
+    ListaPtrFilmes *listaOcor;
+    Filme *res, *aux;
     char         opcao;
     char* trecho = mallocSafe(sizeof(char));
     clock_t start, end; /* usadas para medir tempo de processamento */
     double elapsed;
+    float maxNota;
+    int ordenadoNota = 0, numFilmes, minVotos, tabelaCriada = 0, i = 0, j;
     /* declaracao das demais variaveis do main */
 
     /*------------------------------------------------------------*/
@@ -105,31 +110,66 @@ main(int argc, char *argv[])
             printf("Digite parte do nome do filme a ser procurado: ");
             leiaString(trecho, 256); /*Lê uma string com tamanho máximo de 256 caracteres*/
 
-            procuraFilme(lst, trecho);
+            res = procuraFilme(lst, trecho);
+            if (res == NULL) printf("\nFilme nao encontrado\n");
             break;
         }
 
         /*---------------------------------------------*/
-        case HASH: /* opcional */
+        case HASH:
         {
+            if(tabelaCriada) freeST();
+            initST();
+
+            for(aux = lst->cab->prox; aux != lst->cab; aux = aux->prox){
+                do{
+                    trecho[0] = '\0';
+                    for(j = 0; aux->nome[i] != '\0' && aux->nome[i] != ' '; j++){
+                        if(aux->nome[i] >= 'A' && aux->nome[i] <= 'Z') trecho[j] = aux->nome[i++] -'A'+'a';
+                        else trecho[j] = aux->nome[i++];
+                    }
+                    trecho[j] = '\0';
+                    i++;
+
+                    if( strCmp(" ", trecho) != 0 && strCmp("", trecho) != 0 ) putFilmeST(trecho, aux);
+                }while (trecho[0] != '\0');
+
+                i = 0;
+            }
+            tabelaCriada = 1;
             break;
         }
 
         /*---------------------------------------------*/
-        case PROCURAR_HASH: /* opcional */
+        case PROCURAR_HASH:
         {
+            printf("Digite um parte do nome do filme a ser procurado: ");
+            leiaString(trecho, 256);
+            for(j = 0; trecho[j] != '\0'; j++){
+                if(trecho[j] >= 'A' && trecho[j] <= 'Z') trecho[j] = trecho[j] - 'A' + 'a';
+            }
+
+            listaOcor = getFilmeST(trecho);
+            if(listaOcor == NULL) AVISO(procureFilmesHash: nenhum filme encontrado);
+            while(listaOcor != NULL){
+                mostreFilme(listaOcor->ptrFlm);
+                listaOcor = listaOcor->proxPtr;
+            }
             break;
         }
 
         /*---------------------------------------------*/
         case MOSTRAR_HASH: /* opcional */
         {
+            if(tabelaCriada) showST();
             break;
         }
 
         /*---------------------------------------------*/
         case LIMPAR_HASH: /* opcional */
         {
+            freeST();
+            tabelaCriada = 0;
             break;
         }
 
@@ -164,36 +204,56 @@ main(int argc, char *argv[])
             
             /* completar essa opcao */
             insiraFilme(lst, flm);
+            ordenadoNota = 0;
             break;
         }
 
         /*---------------------------------------------*/
         case REMOVER:
         {
+            printf("Digite parte do nome do filme a ser procurado: ");
+            leiaString(trecho, 256); /*Lê uma string com tamanho máximo de 256 caracteres*/
+
+            res = procuraFilme(lst, trecho);
+
+            if (res == NULL) printf("\nFilme nao encontrado\n");
+            else removaFilme(lst, res);
             break;
         }
 
         /*---------------------------------------------*/
         case ORDENAR_NOTA_M:
         {
+            mergeSortFilmes(lst, NOTA);
+            printf("Lista de filmes ordenada por nota\n");
+            ordenadoNota = 1;
             break;
         }
 
         /*---------------------------------------------*/
         case ORDENAR_NOME_M:
         {
+            mergeSortFilmes(lst, NOME);
+            printf("Lista de filmes ordenada por nome\n");
+            ordenadoNota = 0;
             break;
         }
 
         /*---------------------------------------------*/
         case ORDENAR_NOTA_Q: /* opcional */
         {
+            quickSortFilmes(lst, NOTA);
+            printf("Lista de filmes ordenada por nota\n");
+            ordenadoNota = 1;
             break;
         }
 
         /*---------------------------------------------*/
         case ORDENAR_NOME_Q: /* opcional */
         {
+            quickSortFilmes(lst, NOME);
+            printf("Lista de filmes ordenada por nome\n");
+            ordenadoNota = 0;
             break;
         }
 
@@ -207,24 +267,50 @@ main(int argc, char *argv[])
         /*---------------------------------------------*/
         case MOSTRAR_MENOR:
         {
+            if (!ordenadoNota) printf("Lista de filmes nao esta ordenada por notas\n");
+            else{
+                printf("Qual o numero de filmes a ser mostrado: ");
+                scanf(" %d", &numFilmes);
+                printf("Qual a nota maxima: ");
+                scanf(" %f", &maxNota);
+                printf("Qual o numero minimo de votos: ");
+                scanf(" %d", &minVotos);
+                mostreFilmesNota(numFilmes, maxNota, minVotos, lst, MOSTRAR_MENOR);
+            }
             break;
         }
 
         /*---------------------------------------------*/
         case MOSTRAR_MAIOR:
         {
+            if (!ordenadoNota) printf("Lista de filmes nao esta ordenada por notas\n");
+            else{
+                printf("Qual o numero de filmes a ser mostrado: ");
+                scanf(" %d", &numFilmes);
+                printf("Qual a nota minima: ");
+                scanf(" %f", &maxNota);
+                printf("Qual o numero minimo de votos: ");
+                scanf(" %d", &minVotos);
+                mostreFilmesNota(numFilmes, maxNota, minVotos, lst, MOSTRAR_MAIOR);
+            }
             break;
         }
       
         /*---------------------------------------------*/
         case LIMPAR:
         {
+            libereListaFilmes(lst);
+            printf("Lista de filmes foi limpa\n");
             break;
         }
 
         /*---------------------------------------------*/
         case SAIR:
         {
+            libereFilme(lst->cab);
+            free(lst);
+            libereListaFilmes(lst);
+            free(trecho);
             break;
         }
 
@@ -268,17 +354,17 @@ leiaOpcao()
         "  (C) carregar um arquivo de dados eliminando repeticoes\n"
         "  (g) gravar   a lista atual em um arquivo\n"
         "  (p) procurar a nota de um filme\n"
-        "  (h) criar    a  TS com as palavras em nomes de filmes (opcional)\n"
-        "  (P) procurar na TS a nota de um filme (opcional)\n"
-        "  (M) mostrar  a  TS (opcional)\n"
-        "  (L) limpar   a  TS (opcional)\n"
+        "  (h) criar    a  TS com as palavras em nomes de filmes\n"
+        "  (P) procurar na TS a nota de um filme\n"
+        "  (M) mostrar  a  TS\n"
+        "  (L) limpar   a  TS\n"
         "  (i) inserir  um filme\n"
         "  (r) remover  um filme\n";
     char listaOpcoes2[] = 
         "  (o) ordenar  a lista de filmes por nota (mergeSort)\n"
         "  (O) ordenar  a lista de filmes por nome (mergeSort)\n"
-        "  (q) ordenar  a lista de filmes por nota (quickSort, opcional)\n"
-        "  (Q) ordenar  a lista de filmes por nome (quickSort, opcional)\n"
+        "  (q) ordenar  a lista de filmes por nota (quickSort)\n"
+        "  (Q) ordenar  a lista de filmes por nome (quickSort)\n"
         "  (m) mostrar  todos os filmes\n"
         "  (<) mostrar  N filmes com nota _menor_ que X e pelo menos V votos\n"
         "  (>) mostrar  N filmes com nota _maior_ que X e pelo menos V votos\n"

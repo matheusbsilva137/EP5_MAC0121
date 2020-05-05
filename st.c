@@ -10,7 +10,8 @@
   SUA DISTRIBUIÇÃO. ESTOU CIENTE QUE OS CASOS DE PLÁGIO SÃO PUNIDOS COM 
   REPROVAÇÃO DIRETA NA DISCIPLINA.
 
-  Nome:
+  Nome: Matheus Barbosa Silva
+  NUSP: 11221741
 
   st.c
   IMDB 2019
@@ -126,8 +127,16 @@ static int nChaves = 0;
 static int
 hash(String palavra)
 {
-    return 0;
-    AVISO(hash em st.c: Vixe! Ainda nao fiz essa funcao ...);
+    char c;
+    int i = 0, j;
+
+    for(j = 0, c = palavra[0]; c != '\0'; c = palavra[++j] ){
+        if(c >= 'A' && c <= 'Z') c = c - 'A' + 'a';
+
+        i += c;
+    }
+
+    return i%M;
 }
 
 /*-----------------------------------------------------------*/
@@ -140,7 +149,9 @@ hash(String palavra)
 void
 initST()
 {
-    AVISO(initST em st.c: Vixe! Ainda nao fiz essa funcao ...);
+    int i;
+
+    for(i = M-1; i >= 0; i--) hashHead[i] = NULL;
 }
 
 /*-----------------------------------------------------------*/
@@ -177,7 +188,43 @@ initST()
 void
 putFilmeST(String palavra, Filme *flm)
 {
-    AVISO(putFilmeST em st.c: Vixe! Ainda nao fiz essa funcao ...);
+    int ind = hash(palavra);
+    ListaPtrFilmes* novaOcor;
+    CelST* novaColisao;
+
+    if(hashHead[ind] != NULL){
+        if(strCmp(palavra, hashHead[ind]->palavra) == 0){
+            novaOcor = mallocSafe(sizeof(ListaPtrFilmes));
+            novaOcor->ptrFlm = flm;
+
+            novaOcor->proxPtr = hashHead[ind]->iniListaPtr;
+            hashHead[ind]->iniListaPtr = novaOcor;
+        }else{
+            novaColisao = mallocSafe(sizeof(CelST*));
+            novaColisao->palavra = mallocSafe(sizeof(String));
+            strcpy(novaColisao->palavra, palavra);
+
+            novaColisao->proxST = hashHead[ind]->proxST;
+            hashHead[ind]->proxST = novaColisao;
+
+            novaColisao->iniListaPtr = mallocSafe(sizeof(ListaPtrFilmes));
+            novaColisao->iniListaPtr->ptrFlm = flm;
+            novaColisao->iniListaPtr->proxPtr = NULL;
+
+            nChaves++;
+        }
+    }else{
+        hashHead[ind] = mallocSafe(sizeof(CelST*));
+
+        hashHead[ind]->palavra = mallocSafe(sizeof(String));
+        strcpy(hashHead[ind]->palavra, palavra);
+        hashHead[ind]->iniListaPtr = mallocSafe(sizeof(ListaPtrFilmes));
+        hashHead[ind]->iniListaPtr->ptrFlm = flm;
+        hashHead[ind]->iniListaPtr->proxPtr = NULL;
+        hashHead[ind]->proxST = NULL;
+
+        nChaves++;
+    }
 }
 
 /*-----------------------------------------------------------*/
@@ -204,7 +251,13 @@ putFilmeST(String palavra, Filme *flm)
 ListaPtrFilmes *
 getFilmeST(String palavra)
 {
-    AVISO(getFilmeST em st.c: Vixe! Ainda nao fiz essa funcao ...);
+    CelST* aux; 
+    int ind = hash(palavra);
+    if(hashHead[ind] != NULL){
+        for(aux = hashHead[ind]; strCmp(aux->palavra, palavra) != 0; aux = aux->proxST);
+        if( strCmp(aux->palavra, palavra) == 0 )
+            return aux->iniListaPtr;
+    }
     return NULL;
 }
 
@@ -252,7 +305,15 @@ getFilmeST(String palavra)
 void
 showST()
 {
-    AVISO(showST em st.c: Vixe! Ainda nao fiz essa funcao ...);
+    CelST *aux, *auxColisoes;
+    int i;
+
+    printf(". . . . . . . . . . . . . . . . . . . . . . .\n");
+    printf("Tabela de simbolos: { codigo: lista de chaves }\n");
+    for(i = 0, aux = hashHead[0]; i < M; aux = hashHead[i], i++){
+        for(auxColisoes = aux; auxColisoes != NULL; auxColisoes = auxColisoes->proxST)
+            if(auxColisoes != NULL) printf("{ %5d: '%s' }\n", i, auxColisoes->palavra);
+    }
 }
 
 /*-----------------------------------------------------------*/
@@ -265,6 +326,22 @@ showST()
 void
 freeST()
 {
-    AVISO(freeST em st.c: Vixe! Ainda nao fiz essa funcao ...);
-}
+    int i;
+    CelST* aux, *proximo;
+    ListaPtrFilmes *auxRepet, *proxRepet;
 
+    for(i = 0; i < M; i++){
+        for(aux = hashHead[i]; aux != NULL; aux = proximo){
+            proximo = aux->proxST;
+            if(aux->palavra != NULL) free(aux->palavra);
+            
+            for(auxRepet = aux->iniListaPtr; auxRepet != NULL; auxRepet = proxRepet){
+                proxRepet = auxRepet->proxPtr;
+
+                free(auxRepet);
+            }
+            free(aux);
+            hashHead[i] = NULL;
+        }
+    }
+}

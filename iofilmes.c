@@ -399,6 +399,7 @@ void
 mostreListaFilmes(ListaFilmes *lst)
 {
     Filme *cabeca, *aux, *proximo;
+    if(lst->cab->prox == lst->cab || lst->cab->ant == lst->cab) AVISO(mostreListaFilmes: lista de filmes vazia);
     for(cabeca = lst->cab, aux = lst->cab->prox; aux != cabeca; aux = proximo){
         proximo = aux->prox;
         mostreFilme(aux);

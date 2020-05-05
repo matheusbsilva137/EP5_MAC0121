@@ -71,14 +71,23 @@ insiraFilme(ListaFilmes *lst, Filme *flm);
 void 
 removaFilme(ListaFilmes *lst, Filme *flm);
 
-void 
+Filme* 
 procuraFilme(ListaFilmes *lst, char* trechoNome);
+
+void
+mostreFilmesNota(int numFilmes, float nota, int minVotos, ListaFilmes* lst, int opcao);
 
 void 
 mergeSortFilmes(ListaFilmes *lst, Criterio criterio);
 
+void
+intercale(ListaFilmes listParc1, ListaFilmes listParc2, ListaFilmes* lst, Criterio criterio);
+
 void 
 quickSortFilmes(ListaFilmes *lst, Criterio criterio);
+
+Filme*
+separa(ListaFilmes *lst, Criterio criterio);
 
 void 
 hashFilmes(ListaFilmes *lst);
